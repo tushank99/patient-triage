@@ -1,0 +1,47 @@
+﻿# Python / Virtual Environment
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# Database / Local Storage
+*.db
+*.sqlite
+*.sqlite3
+backend/triage.db
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+backend/.env
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.output/
+frontend/.tanstack/
+frontend/.nitro/
+frontend/.vinxi/
+frontend/.wrangler/
+frontend/.dev.vars
+
+# Logs
+logs/
+*.log
+
+# OS & IDE Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
