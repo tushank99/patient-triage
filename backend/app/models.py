@@ -1,69 +1,69 @@
-import uuid
-from datetime import datetime, timezone
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text, JSON, ForeignKey
-from sqlalchemy.orm import relationship
+import uuid 
+from datetime import datetime, timezone 
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text, JSON, ForeignKey 
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+from backend.app.database import Base 
 
-# Use relative import to resolve Pylance warning
-from backend.app.database import Base
-def utc_now():
-    """Helper to return current timezone-aware UTC time."""
+def utc_now(): 
+    """Helper to return current timezone-aware UTC time.""" 
     return datetime.now(timezone.utc)
 
-class Patient(Base):
-    __tablename__ = "patients"
-
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    mrn = Column(String, unique=True, index=True, nullable=False) # Medical Record Number
-    age_years = Column(Float, nullable=False)
-    gender = Column(String, nullable=False)
-    has_prior_history = Column(Boolean, default=False)
-    prior_history_summary = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=utc_now)
-
+class Patient(Base): 
+    __tablename__ = "patients" 
+    
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    mrn: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    name: Mapped[str | None] = mapped_column(String, nullable=True) # Added for Phase 5 Archive
+    age_years: Mapped[float] = mapped_column(Float, nullable=False)
+    gender: Mapped[str] = mapped_column(String, nullable=False)
+    has_prior_history: Mapped[bool] = mapped_column(Boolean, default=False)
+    prior_history_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_anonymized: Mapped[bool] = mapped_column(Boolean, default=False) # Phase 5 GDPR Flag
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    
     visits = relationship("Visit", back_populates="patient")
 
-class Visit(Base):
-    __tablename__ = "visits"
-
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    patient_id = Column(String, ForeignKey("patients.id"), nullable=False)
-    arrival_time = Column(DateTime(timezone=True), default=utc_now)
+class Visit(Base): 
+    __tablename__ = "visits" 
     
-    # Raw & Extracted Clinical Inputs
-    chief_complaint = Column(Text, nullable=False)
-    heart_rate = Column(Integer, nullable=True)
-    systolic_bp = Column(Integer, nullable=True)
-    diastolic_bp = Column(Integer, nullable=True)
-    respiratory_rate = Column(Integer, nullable=True)
-    oxygen_saturation = Column(Float, nullable=True)
-    temperature_celsius = Column(Float, nullable=True)
-    pain_score = Column(Integer, nullable=True)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    patient_id: Mapped[str] = mapped_column(String, ForeignKey("patients.id"), nullable=False)
+    arrival_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     
-    # AI Output Fields
-    ai_esi_score = Column(Integer, nullable=True)       # 1 to 5 (ESI Scale)
-    ai_confidence = Column(Float, nullable=True)        # 0.0 to 1.0
-    ai_rationale = Column(Text, nullable=True)
-    ai_risk_factors = Column(JSON, nullable=True)      # SHAP / Key features
+    chief_complaint: Mapped[str] = mapped_column(Text, nullable=False)
+    heart_rate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    systolic_bp: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    diastolic_bp: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    respiratory_rate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    oxygen_saturation: Mapped[float | None] = mapped_column(Float, nullable=True)
+    temperature_celsius: Mapped[float | None] = mapped_column(Float, nullable=True)
+    pain_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     
-    # Final Decision & Queue Status
-    final_esi_score = Column(Integer, nullable=True)
-    status = Column(String, default="WAITING")          # WAITING, IN_TRIAGE, ESCALATED, COMPLETED
-    is_overridden = Column(Boolean, default=False)
+    ai_esi_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    ai_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ai_rationale: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_risk_factors: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    
+    final_esi_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String, default="WAITING")
+    is_overridden: Mapped[bool] = mapped_column(Boolean, default=False)
+    discharge_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True) # Phase 5 15-min limit
     
     patient = relationship("Patient", back_populates="visits")
     audit_logs = relationship("AuditLog", back_populates="visit")
 
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
-
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    visit_id = Column(String, ForeignKey("visits.id"), nullable=False)
-    timestamp = Column(DateTime(timezone=True), default=utc_now)
-    clinician_id = Column(String, nullable=False)
-    action = Column(String, nullable=False)             # e.g., "OVERRIDE_ESI", "CONFIRM_ESI"
-    initial_ai_esi = Column(Integer, nullable=True)
-    assigned_esi = Column(Integer, nullable=False)
-    override_reason = Column(Text, nullable=True)       # Clinical justification
-    raw_payload_snapshot = Column(JSON, nullable=True)
-
+class AuditLog(Base): 
+    __tablename__ = "audit_logs" 
+    
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    visit_id: Mapped[str] = mapped_column(String, ForeignKey("visits.id"), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    clinician_id: Mapped[str] = mapped_column(String, nullable=False)
+    action: Mapped[str] = mapped_column(String, nullable=False)
+    
+    initial_ai_esi: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    assigned_esi: Mapped[int] = mapped_column(Integer, nullable=False)
+    override_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    raw_payload_snapshot: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    
     visit = relationship("Visit", back_populates="audit_logs")

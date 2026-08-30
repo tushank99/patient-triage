@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -6,8 +7,10 @@ class Settings(BaseSettings):
     redis_url: str
     environment: str = "development"
 
-    # This is the updated Pydantic V2 way to link the .env file
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"),
+        extra="ignore"
+    )
 
 
 settings = Settings()  # type: ignore

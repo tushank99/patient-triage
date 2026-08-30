@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -127,6 +128,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 import { TriageProvider } from "../lib/triage-context";
 import { AddPatientModal } from "../components/AddPatientModal";
+// Phase 4: Import the new modals
+import { UpdateVitalsModal } from "../components/UpdateVitalsModal";
+import { DispositionModal } from "../components/DispositionModal";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -136,7 +140,11 @@ function RootComponent() {
       <TriageProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        
+        {/* Modals mounted globally */}
         <AddPatientModal />
+        <UpdateVitalsModal />
+        <DispositionModal />
       </TriageProvider>
     </QueryClientProvider>
   );

@@ -20,13 +20,16 @@ class PatientIntake(BaseModel):
     has_prior_history: bool = False
     prior_history_summary: Optional[str] = None
 
+class Badge(BaseModel):
+    label: str
+    type: str
+
 class TriageResult(BaseModel):
     visit_id: str
-    suggested_esi: int = Field(..., ge=1, le=5)
-    confidence: float = Field(..., ge=0.0, le=1.0)
+    recommended_esi: int = Field(..., ge=1, le=5)
+    confidence_score: float = Field(..., ge=0.0, le=100.0)
     rationale: str
-    key_drivers: List[str] = []
-    is_escalated_failsafe: bool = False
+    badges: List[Badge] = []
 
 class OverrideRequest(BaseModel):
     visit_id: str

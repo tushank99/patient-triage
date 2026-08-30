@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
@@ -6,15 +7,27 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { useTriage, EsiLevel } from "../lib/triage-context";
+import { useVoiceToText } from "../hooks/useVoiceToText";
 
 export function AddPatientModal() {
   const { isAddModalOpen, setIsAddModalOpen, addPatient } = useTriage();
   
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [isLoading, setIsLoading] = useState(false);
   
+  // Voice-to-Text Hook
+  const { 
+    isListening, 
+    transcript, 
+    startListening, 
+    stopListening, 
+    error: voiceError, 
+    setTranscript 
+  } = useVoiceToText();
+
   // Form State
   const [name, setName] = useState("");
-  const [gender, setGender] = useState<"M" | "F" | "">("");
+  const [gender, setGender] = useState<"M" | "F" | "O" | "">("");
   const [dob, setDob] = useState("");
   const [complaint, setComplaint] = useState("");
   
@@ -26,6 +39,32 @@ export function AddPatientModal() {
   const [spo2, setSpo2] = useState("");
   const [pain, setPain] = useState("");
   const [history, setHistory] = useState(false);
+
+  // AI & Session State
+  const [currentMrn, setCurrentMrn] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [aiResult, setAiResult] = useState<any>(null);
+  
+  // Override Tracking State
+  const [isOverriding, setIsOverriding] = useState(false);
+  const [selectedOverrideEsi, setSelectedOverrideEsi] = useState<EsiLevel | null>(null);
+  const [overrideReason, setOverrideReason] = useState("");
+
+  const OVERRIDE_REASONS = [
+    "Patient appearance toxic/lethargic",
+    "Clinical intuition / Gestalt",
+    "Unreported complex medical history",
+    "AI under-triaged (Too low)",
+    "AI over-triaged (Too high)"
+  ];
+
+  // Append voice transcript to complaint automatically
+  useEffect(() => {
+    if (transcript) {
+      setComplaint((prev) => (prev ? prev + " " + transcript : transcript));
+      setTranscript(""); // clear the buffer so it doesn't duplicate
+    }
+  }, [transcript, setTranscript]);
 
   const resetForm = () => {
     setStep(1);
@@ -41,6 +80,13 @@ export function AddPatientModal() {
     setSpo2("");
     setPain("");
     setHistory(false);
+    
+    // AI and Override Resets
+    setAiResult(null);
+    setIsOverriding(false);
+    setSelectedOverrideEsi(null);
+    setOverrideReason("");
+    stopListening();
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -60,7 +106,6 @@ export function AddPatientModal() {
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
       calculatedAge--;
     }
-    // Calculate fractional age for infants if less than 1 year
     if (calculatedAge === 0) {
       const diffTime = Math.abs(today.getTime() - birthDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -69,7 +114,6 @@ export function AddPatientModal() {
     return calculatedAge;
   }, [dob]);
 
-  // Validations
   const numTemp = temp ? parseFloat(temp) : null;
   const numBpSys = bpSys ? parseInt(bpSys, 10) : null;
   const numBpDia = bpDia ? parseInt(bpDia, 10) : null;
@@ -104,32 +148,74 @@ export function AddPatientModal() {
   if (!spo2) skippedVitals.push("Oxygen Saturation");
   if (!pain) skippedVitals.push("Pain Score");
 
-  const handleSubmit = () => {
-    // Generate MRN
-    const mrn = `MRN-WALK-${Math.floor(100 + Math.random() * 900)}`;
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    const generatedMrn = `MRN-WALK-${Math.floor(100 + Math.random() * 900)}`;
+    setCurrentMrn(generatedMrn);
 
-    // Deterministic AI ESI Calculation
-    let esi: EsiLevel = 4;
-    
-    // Pediatric Fever: age <= 0.25 and temp >= 38.0
-    if (age !== null && age <= 0.25 && normalizedTemp !== null && normalizedTemp >= 38.0) {
-      esi = 2;
-    } else if (numSpo2 !== null && numSpo2 <= 92) {
-      esi = 2;
-    } else if ((numHr !== null && numHr > 120) || (numBpSys !== null && numBpSys > 160)) {
-      esi = 3;
+    const payload = {
+      mrn: history ? generatedMrn : null,
+      age_years: age !== null ? Math.floor(age) : 0,
+      gender: gender,
+      chief_complaint: complaint,
+      has_prior_history: history,
+      vitals: {
+        heart_rate: numHr,
+        systolic_bp: numBpSys,
+        diastolic_bp: numBpDia,
+        oxygen_saturation: numSpo2,
+        temperature_celsius: normalizedTemp,
+        pain_score: pain ? parseInt(pain, 10) : null
+      }
+    };
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/triage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Backend triage failed");
+      
+      const data = await response.json();
+      setAiResult(data);
+      setStep(3);
+      
+    } catch (err) {
+      console.error("API Error. Falling back to offline deterministic mode:", err);
+      let esi: EsiLevel = 4;
+      if (age !== null && age <= 0.25 && normalizedTemp !== null && normalizedTemp >= 38.0) {
+        esi = 2;
+      } else if (numSpo2 !== null && numSpo2 <= 92) {
+        esi = 2;
+      } else if ((numHr !== null && numHr > 120) || (numBpSys !== null && numBpSys > 160)) {
+        esi = 3;
+      }
+      
+      setAiResult({
+        recommended_esi: esi,
+        confidence_score: 50,
+        rationale: "SYSTEM OFFLINE: Relied on fallback deterministic rules.",
+        badges: [{ label: "Offline Mode", type: "warning" }]
+      });
+      setStep(3);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  const handleFinalizeTriage = (finalEsi: EsiLevel) => {
     addPatient({
       name,
-      mrn,
-      age: age !== null ? Math.floor(age) : 0, // Fallback if needed, though we track fractional age, the mock displays Math.floor logic or just the number
+      mrn: currentMrn,
+      age: age !== null ? Math.floor(age) : 0,
       gender: gender as "M" | "F",
       complaint,
-      esi,
+      esi: finalEsi,
       waitMins: 0,
+      aiConfidence: aiResult?.confidence_score
     });
-    
     setIsAddModalOpen(false);
     resetForm();
   };
@@ -167,7 +253,7 @@ export function AddPatientModal() {
                       <select
                         id="patient-gender"
                         value={gender}
-                        onChange={(e) => setGender(e.target.value as any)}
+                        onChange={(e) => setGender(e.target.value as "M" | "F" | "O" | "")}
                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-shadow"
                       >
                         <option value="" disabled>Select gender</option>
@@ -196,7 +282,8 @@ export function AddPatientModal() {
                     </div>
                   </div>
 
-                  <div>
+                  {/* Voice Enabled Chief Complaint Box */}
+                  <div className="relative">
                     <label htmlFor="patient-complaint" className="block text-sm font-medium text-foreground mb-1">Chief Complaint</label>
                     <textarea
                       id="patient-complaint"
@@ -204,9 +291,22 @@ export function AddPatientModal() {
                       value={complaint}
                       onChange={(e) => setComplaint(e.target.value)}
                       placeholder="Describe presenting symptoms and clinical observations..."
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-shadow resize-none"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 pb-10 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-shadow resize-none"
                     />
+                    <button 
+                      type="button"
+                      onClick={isListening ? stopListening : startListening}
+                      className={`absolute bottom-3 right-3 px-3 py-1 text-xs font-medium rounded-full shadow-sm transition-colors ${
+                        isListening 
+                          ? 'bg-red-500 text-white animate-pulse' 
+                          : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                      }`}
+                      title="Dictate Symptoms"
+                    >
+                      {isListening ? "⏹ Stop Dictating" : "🎤 Dictate"}
+                    </button>
                   </div>
+                  {voiceError && <span className="text-xs text-red-500 block mt-1">{voiceError}</span>}
                 </div>
               </section>
 
@@ -339,7 +439,7 @@ export function AddPatientModal() {
               </button>
             </div>
           </div>
-        ) : (
+        ) : step === 2 ? (
           <div className="flex flex-col h-full max-h-[85vh]">
             <DialogHeader className="px-6 py-5 border-b border-border bg-white">
               <DialogTitle className="text-xl">Review & Confirm</DialogTitle>
@@ -424,20 +524,186 @@ export function AddPatientModal() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                disabled={isLoading}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
               >
                 &larr; Edit Details
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                disabled={isLoading}
+                className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-70 disabled:cursor-wait"
               >
-                Confirm & Run AI Triage
+                {isLoading ? "Running AI Models..." : "Confirm & Run AI Triage"}
               </button>
             </div>
           </div>
-        )}
+        ) : step === 3 && aiResult ? (
+          <div className="flex flex-col h-full max-h-[85vh]">
+            <DialogHeader className="px-6 py-5 border-b border-border bg-white">
+              <DialogTitle className="text-xl">AI Assessment Result</DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50">
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* ESI Recommendation Card */}
+                <div className="md:col-span-1 flex flex-col items-center justify-center p-6 bg-white border border-border rounded-xl shadow-sm">
+                  <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">Recommended</p>
+                  <div className={`flex items-center justify-center w-24 h-24 rounded-full text-4xl font-black shadow-inner
+                    ${aiResult.recommended_esi === 1 ? 'bg-red-100 text-red-700' : 
+                      aiResult.recommended_esi === 2 ? 'bg-orange-100 text-orange-700' : 
+                      aiResult.recommended_esi === 3 ? 'bg-yellow-100 text-yellow-700' : 
+                      aiResult.recommended_esi === 4 ? 'bg-green-100 text-green-700' : 
+                      'bg-blue-100 text-blue-700'}`}
+                  >
+                    {aiResult.recommended_esi}
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-foreground">ESI Level</p>
+                </div>
+
+                {/* Confidence & Badges Card */}
+                <div className="md:col-span-2 space-y-4">
+                  <div className="p-5 bg-white border border-border rounded-xl shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-sm font-bold uppercase text-muted-foreground">Confidence Score</h3>
+                      <span className={`text-lg font-black ${aiResult.confidence_score >= 85 ? 'text-green-600' : aiResult.confidence_score >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        {aiResult.confidence_score}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={`h-2.5 rounded-full ${aiResult.confidence_score >= 85 ? 'bg-green-500' : aiResult.confidence_score >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                        style={{ width: `${aiResult.confidence_score}%` }}
+                      ></div>
+                    </div>
+                    
+                    {/* Deterministic Badges */}
+                    {aiResult.badges && aiResult.badges.length > 0 && (
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Clinical Flags</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {aiResult.badges.map((badge: any, i: number) => (
+                            <span key={i} className={`px-2.5 py-1 text-xs font-semibold rounded-full border 
+                              ${badge.type === 'danger' ? 'bg-red-50 text-red-700 border-red-200' : 
+                                badge.type === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
+                                'bg-emerald-50 text-emerald-700 border-emerald-200'}`}
+                            >
+                              {badge.type === 'danger' ? '🔴 ' : badge.type === 'warning' ? '⚠️ ' : '🟢 '}{badge.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Plain-English Rationale */}
+              <div className="p-5 bg-white border border-border rounded-xl shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">AI Rationale</h3>
+                <p className="text-sm text-foreground leading-relaxed font-medium">
+                  {aiResult.rationale}
+                </p>
+              </div>
+
+              {/* Override Workflow Inline */}
+              {isOverriding && (
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-lg animate-in slide-in-from-top-2">
+                  {!selectedOverrideEsi ? (
+                    <>
+                      <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                        <span>⚠️</span> Select New ESI Level:
+                      </h4>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((level) => (
+                          <button
+                            key={level}
+                            onClick={() => setSelectedOverrideEsi(level as EsiLevel)}
+                            className={`flex-1 py-3 rounded-md font-bold transition-all shadow-sm
+                              ${level === aiResult.recommended_esi 
+                                ? 'bg-slate-700 text-slate-400 cursor-not-allowed border-none' 
+                                : 'bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 hover:border-slate-500'}`}
+                            disabled={level === aiResult.recommended_esi}
+                          >
+                            ESI {level}
+                          </button>
+                        ))}
+                      </div>
+                      <button onClick={() => setIsOverriding(false)} className="mt-4 text-xs text-slate-400 hover:text-white">
+                        Cancel Override
+                      </button>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-bold text-white">
+                          Reason for overriding AI to ESI {selectedOverrideEsi}?
+                        </h4>
+                        <button onClick={() => setSelectedOverrideEsi(null)} className="text-xs text-slate-400 hover:text-white">
+                          &larr; Back
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {OVERRIDE_REASONS.map((reason) => (
+                          <button
+                            key={reason}
+                            onClick={() => setOverrideReason(reason)}
+                            className={`px-3 py-2 text-xs text-left rounded border transition-colors ${
+                              overrideReason === reason 
+                                ? 'bg-blue-600 border-blue-500 text-white' 
+                                : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                            }`}
+                          >
+                            {reason}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          console.log("AUDIT LOG EVENT:", {
+                            mrn: currentMrn,
+                            ai_recommended_esi: aiResult.recommended_esi,
+                            human_overridden_esi: selectedOverrideEsi,
+                            reason: overrideReason,
+                            timestamp: new Date().toISOString()
+                          });
+                          handleFinalizeTriage(selectedOverrideEsi);
+                        }}
+                        disabled={!overrideReason}
+                        className="w-full mt-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Confirm Override & Submit
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+            <div className="p-6 border-t border-border bg-white flex justify-between items-center">
+              <button
+                type="button"
+                onClick={() => setIsOverriding(true)}
+                disabled={isOverriding}
+                className="text-sm font-semibold text-slate-600 hover:text-red-600 transition-colors disabled:opacity-50"
+              >
+                Manual Override
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFinalizeTriage(aiResult.recommended_esi as EsiLevel)}
+                disabled={isOverriding}
+                className="rounded-md bg-green-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-green-700 disabled:opacity-50"
+              >
+                Accept AI Decision
+              </button>
+            </div>
+          </div>
+        ) : null}
       </DialogContent>
     </Dialog>
   );
