@@ -170,7 +170,8 @@ export function AddPatientModal() {
     };
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/triage', {
+      const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+      const response = await fetch(`${API_URL}/api/triage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
