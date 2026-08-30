@@ -8,7 +8,10 @@ logger = logging.getLogger(__name__)
 
 chroma_client = chromadb.Client()
 ehr_collection = chroma_client.get_or_create_collection(name="patient_ehr_history")
-llm_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+llm_client = OpenAI(
+    api_key=settings.OPENAI_API_KEY,
+    base_url="https://api.groq.com/openai/v1" if settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.startswith("gsk_") else None
+)
 
 def seed_mock_ehr_data():
     """Seeds the DB with dates to handle 'The Temporal Trap'"""
