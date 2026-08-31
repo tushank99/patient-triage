@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Plus, History, List } from "lucide-react";
+import { ArrowLeft, Plus, History, List, FastForward } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
 import { PatientRow } from "../components/PatientRow";
@@ -64,13 +64,19 @@ function PatientsList() {
 
           {viewMode === "QUEUE" ? (
             <section className="flex flex-col flex-1 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-              <div className="grid gap-5 border-b border-border bg-muted/30 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                <div className="flex min-w-0 items-center gap-4">
-                  <label htmlFor="wait-offset-patients" className="shrink-0 text-sm font-semibold text-foreground">Time (mins)</label>
-                  <input id="wait-offset-patients" type="range" min="0" max="60" step="5" value={waitOffset} onChange={(event) => setWaitOffset(Number(event.target.value))} className="h-2 min-w-0 flex-1 cursor-pointer accent-primary" />
-                  <output htmlFor="wait-offset-patients" className="w-16 shrink-0 rounded-lg border border-border bg-card px-3 py-2 text-center text-sm font-bold tabular-nums">{waitOffset}</output>
+              <div className="flex flex-col lg:flex-row gap-5 border-b border-border bg-muted/30 px-5 py-4 lg:items-center lg:justify-between">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                  <label htmlFor="wait-offset-patients" className="flex items-center gap-1.5 shrink-0 text-sm font-bold text-slate-700">
+                    <FastForward className="w-4 h-4 text-blue-600" /> Fast-Forward Time
+                  </label>
+                  <input id="wait-offset-patients" type="range" min="0" max="60" step="5" value={waitOffset} onChange={(event) => setWaitOffset(Number(event.target.value))} className="h-2 min-w-0 flex-1 cursor-pointer accent-blue-600" />
+                  <output htmlFor="wait-offset-patients" className="w-20 shrink-0 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 px-3 py-2 text-center text-sm font-bold tabular-nums">+{waitOffset}mins</output>
                 </div>
-                <div className="flex items-center gap-3">
+                
+                {/* DIVIDER */}
+                <div className="hidden lg:block w-px h-8 bg-slate-300 mx-1"></div>
+
+                <div className="flex items-center gap-3 shrink-0">
                   <span className="text-sm font-semibold text-foreground">Sort by</span>
                   <div className="flex rounded-lg border border-border bg-card p-1" role="group">
                     <button type="button" onClick={() => setSortMode("wait")} aria-pressed={sortMode === "wait"} className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${sortMode === "wait" ? "bg-accent text-accent-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>Wait Time</button>
