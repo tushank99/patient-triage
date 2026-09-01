@@ -8,6 +8,7 @@ import {
 } from "./ui/dialog";
 import { useTriage, EsiLevel } from "../lib/triage-context";
 import { useVoiceToText } from "../hooks/useVoiceToText";
+import { runEdgeInference } from "../lib/onnx-engine";
 
 export function AddPatientModal() {
   const { isAddModalOpen, setIsAddModalOpen, addPatient } = useTriage();
@@ -184,22 +185,28 @@ export function AddPatientModal() {
       setStep(3);
       
     } catch (err) {
-      console.error("API Error. Falling back to offline deterministic mode:", err);
-      let esi: EsiLevel = 4;
-      if (age !== null && age <= 0.25 && normalizedTemp !== null && normalizedTemp >= 38.0) {
-        esi = 2;
-      } else if (numSpo2 !== null && numSpo2 <= 92) {
-        esi = 2;
-      } else if ((numHr !== null && numHr > 120) || (numBpSys !== null && numBpSys > 160)) {
-        esi = 3;
+      console.error("API Error. Circuit-breaking to local ONNX model:", err);
+      try {
+        const edgeResult = await runEdgeInference({
+          age,
+          hr: numHr,
+          bpSys: numBpSys,
+          bpDia: numBpDia,
+          spo2: numSpo2,
+          temp: normalizedTemp,
+          pain: null,
+          hasMrn: false,
+        });
+        setAiResult(edgeResult);
+      } catch (onnxErr) {
+        console.error("ONNX fallback also failed:", onnxErr);
+        setAiResult({
+          recommended_esi: 3 as EsiLevel,
+          confidence_score: 40,
+          rationale: "SYSTEM OFFLINE: Both cloud API and local ONNX model unavailable. Defaulting to ESI 3 (safety-first escalation).",
+          badges: [{ label: " Full Offline", type: "danger" }],
+        });
       }
-      
-      setAiResult({
-        recommended_esi: esi,
-        confidence_score: 50,
-        rationale: "SYSTEM OFFLINE: Relied on fallback deterministic rules.",
-        badges: [{ label: "Offline Mode", type: "warning" }]
-      });
       setStep(3);
     } finally {
       setIsLoading(false);

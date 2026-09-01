@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useTriage, EsiLevel } from "../lib/triage-context";
+import { runEdgeInference } from "../lib/onnx-engine";
 
 export function UpdateVitalsModal() {
   const { patients, updateVitalsModal, setUpdateVitalsModal, updatePatientVitals } = useTriage();
@@ -80,9 +81,33 @@ export function UpdateVitalsModal() {
         setUpdateVitalsModal({ isOpen: false, patientId: null });
       }
     } catch (e) {
-      console.error(e);
-      updatePatientVitals(patient.id, patient.esi, parsedVitals);
-      setUpdateVitalsModal({ isOpen: false, patientId: null });
+      console.error("API Error. Circuit-breaking to local ONNX model:", e);
+      try {
+        const edgeResult = await runEdgeInference({
+          age: patient.age,
+          hr: parsedVitals.hr ?? null,
+          bpSys: parsedVitals.bpSys ?? null,
+          bpDia: parsedVitals.bpDia ?? null,
+          spo2: parsedVitals.spo2 ?? null,
+          temp: parsedVitals.temp ?? null,
+          pain: null,
+          hasMrn: !!patient.mrn,
+        });
+        const newEsi = edgeResult.recommended_esi as EsiLevel;
+        // Asymmetric cost: never auto-downgrade even in edge mode
+        if (newEsi > patient.esi) {
+          setAiRecommendation(newEsi);
+          setIsDowngrade(true);
+        } else {
+          updatePatientVitals(patient.id, newEsi, parsedVitals);
+          setUpdateVitalsModal({ isOpen: false, patientId: null });
+        }
+      } catch (onnxErr) {
+        console.error("ONNX fallback also failed:", onnxErr);
+        // Ultimate failsafe: keep existing ESI, just update vitals
+        updatePatientVitals(patient.id, patient.esi, parsedVitals);
+        setUpdateVitalsModal({ isOpen: false, patientId: null });
+      }
     } finally {
       setIsLoading(false);
     }
