@@ -1,0 +1,83 @@
+%%{init: {'theme': 'default', 'themeVariables': { 'edgeLabelBackground':'#ffffff', 'textColor': '#000000'}}}%%
+flowchart TD
+    linkStyle default stroke:#94a3b8,stroke-width:2px,color:#0f172a;
+
+    classDef user fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#0f172a,font-weight:bold
+    classDef frontend fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
+    classDef backend fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#14532d
+    classDef ai fill:#fdf4ff,stroke:#d946ef,stroke-width:2px,color:#701a75
+    classDef storage fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f
+    classDef ops fill:#f1f5f9,stroke:#475569,stroke-width:2px,color:#0f172a
+    classDef edge fill:#fef08a,stroke:#ca8a04,stroke-width:2px,color:#854d0e
+
+    Nurse["Triage nurse / charge nurse / physician"]:::user
+    Admin["Admin / viewer"]:::user
+
+    subgraph Frontend ["Frontend: React, Vite, TanStack Router"]
+        Login["Login (JWT in sessionStorage)"]:::frontend
+        Queue["Queue dashboard, override, disposition"]:::frontend
+        Intake["Intake: vitals, dictation, document upload"]:::frontend
+        Review["Review screens: transcript and OCR verification"]:::frontend
+        Edge["Edge model: onnxruntime-web, same features and calibration"]:::edge
+    end
+
+    subgraph API ["Backend: FastAPI, /api/v1"]
+        Gate["Auth, RBAC, facility check, rate limits, security headers, PII log filter"]:::backend
+        Pipeline["Assessment pipeline"]:::backend
+        IntakeSvc["Intake: faster-whisper STT, PP-OCR via RapidOCR"]:::backend
+        Ingest["Ingestion: validate, parse, chunk, embed"]:::backend
+        Retr["Retriever: dense + BM25 + RRF"]:::backend
+        Ground["Claim grounding and injection filter"]:::backend
+    end
+
+    subgraph AI ["Decision components"]
+        Rules["Rules engine: safety floor"]:::ai
+        ML["XGBoost + temperature calibration + TreeSHAP"]:::ai
+        LLM["LLM, structured JSON with cited claims (Groq or any OpenAI-compatible endpoint)"]:::ai
+        Facts["Fact extractor: conditions, meds, allergies, conflicts"]:::ai
+    end
+
+    subgraph Data ["State"]
+        DB[("PostgreSQL (Neon) or SQLite: visits, audit, access_logs, documents, chunks, vectors, jobs, captures")]:::storage
+        Files["Original files: local disk or S3-compatible bucket, Fernet encrypted"]:::storage
+    end
+
+    subgraph Ops ["Operations"]
+        Worker["Job worker: in-process or Celery on Redis"]:::ops
+        Obs["Prometheus metrics, OpenTelemetry traces"]:::ops
+        Backup["Encrypted backups, restore drill, retention"]:::ops
+        CI["CI: pytest, OpenAPI contract, ONNX parity"]:::ops
+    end
+
+    Nurse --> Login --> Queue
+    Nurse --> Intake
+    Nurse --> Review
+    Admin --> Queue
+
+    Intake -->|"POST /triage"| Gate
+    Intake -.->|"API unreachable"| Edge
+    Intake -->|"upload, transcribe"| Gate
+    Review -->|"verify or reject"| Gate
+
+    Gate --> Pipeline
+    Gate --> IntakeSvc
+    Gate --> Ingest
+
+    Pipeline -->|"1. history"| Retr
+    Pipeline -->|"2. facts"| Facts
+    Pipeline -->|"3. predict"| ML
+    Pipeline -->|"4. de-identified prompt"| LLM
+    Pipeline -->|"5. floor"| Rules
+    LLM --> Ground
+    Ground --> Pipeline
+    Pipeline -->|"fuse, confidence, audit"| DB
+
+    Ingest --> Worker --> DB
+    Ingest --> Files
+    IntakeSvc --> DB
+    Retr --> DB
+    Facts --> DB
+
+    DB --> Backup
+    Pipeline --> Obs
+    Worker --> Obs

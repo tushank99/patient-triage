@@ -1,4 +1,4 @@
-<!-- # TriageFlow Architectural Diagram (Simplified)
+# TriageFlow Architectural Diagram (Simplified)
 
 This is the clean, simplified horizontal layout of the architecture, now including the **Edge AI (ONNX)** fallback.
 
@@ -67,4 +67,4 @@ flowchart TD
     %% Archive to Backend to Storage
     Archive -->|POST /api/archive/anonymize| Anonymizer
     Anonymizer -->|Redacts Data| Neon
-``` -->
+```

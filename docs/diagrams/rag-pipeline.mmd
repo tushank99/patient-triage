@@ -1,0 +1,27 @@
+%%{init: {'theme': 'default', 'themeVariables': { 'edgeLabelBackground':'#ffffff', 'textColor': '#000000'}}}%%
+flowchart LR
+    classDef step fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#14532d
+    classDef store fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f
+    classDef gate fill:#fdf4ff,stroke:#d946ef,stroke-width:2px,color:#701a75
+
+    subgraph Offline ["Indexing (job worker)"]
+        U["Upload"]:::step --> V["Validate: magic bytes, size, PDF JS/embedded files, zip-bomb DOCX, optional ClamAV"]:::step
+        V --> P["Parse: PyMuPDF, python-docx, text. Scans go to OCR"]:::step
+        P --> C["Section-aware chunks, about 900 chars, 150 overlap, offsets kept"]:::step
+        C --> E["Embed: potion-retrieval-32M, L2-normalised float32"]:::step
+        E --> S[("document_chunks: text, vector, section, page range, model name")]:::store
+    end
+
+    subgraph Online ["Query time (per triage request)"]
+        Q["Complaint"]:::step --> N["Normalise and expand: abbreviations, lay terms, 3 query variants"]:::step
+        N --> D["Dense: best cosine across variants"]:::step
+        N --> B["BM25 with collection-wide IDF"]:::step
+        S --> D
+        S --> B
+        D --> R["Reciprocal Rank Fusion, k=60"]:::step
+        B --> R
+        R --> G{"Best score above calibrated threshold?"}:::gate
+        G -->|no| NM["No note sent to LLM. Facts still sent. UI says no confident match"]:::gate
+        G -->|yes| PC["Parent section, compressed around the hit"]:::step
+        PC --> L["D1..Dn passages to LLM, cited by claims"]:::step
+    end
