@@ -27,91 +27,9 @@ Facility settings change routing rules (for example, a CT scanner being offline)
 
 ## System architecture
 
-```mermaid
-%%{init: {'theme': 'default', 'themeVariables': { 'edgeLabelBackground':'#ffffff', 'textColor': '#000000'}}}%%
-flowchart TD
-    linkStyle default stroke:#94a3b8,stroke-width:2px,color:#0f172a;
+![TriageFlow system architecture](docs/images/system-architecture.png)
 
-    classDef user fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#0f172a,font-weight:bold
-    classDef frontend fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
-    classDef backend fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#14532d
-    classDef ai fill:#fdf4ff,stroke:#d946ef,stroke-width:2px,color:#701a75
-    classDef storage fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f
-    classDef ops fill:#f1f5f9,stroke:#475569,stroke-width:2px,color:#0f172a
-    classDef edge fill:#fef08a,stroke:#ca8a04,stroke-width:2px,color:#854d0e
-
-    Nurse["Triage nurse / charge nurse / physician"]:::user
-    Admin["Admin / viewer"]:::user
-
-    subgraph Frontend ["Frontend: React, Vite, TanStack Router"]
-        Login["Login (JWT in sessionStorage)"]:::frontend
-        Queue["Queue dashboard, override, disposition"]:::frontend
-        Intake["Intake: vitals, dictation, document upload"]:::frontend
-        Review["Review screens: transcript and OCR verification"]:::frontend
-        Edge["Edge model: onnxruntime-web, same features and calibration"]:::edge
-    end
-
-    subgraph API ["Backend: FastAPI, /api/v1"]
-        Gate["Auth, RBAC, facility check, rate limits, security headers, PII log filter"]:::backend
-        Pipeline["Assessment pipeline"]:::backend
-        IntakeSvc["Intake: faster-whisper STT, PP-OCR via RapidOCR"]:::backend
-        Ingest["Ingestion: validate, parse, chunk, embed"]:::backend
-        Retr["Retriever: dense + BM25 + RRF"]:::backend
-        Ground["Claim grounding and injection filter"]:::backend
-    end
-
-    subgraph AI ["Decision components"]
-        Rules["Rules engine: safety floor"]:::ai
-        ML["XGBoost + temperature calibration + TreeSHAP"]:::ai
-        LLM["LLM, structured JSON with cited claims (Groq or any OpenAI-compatible endpoint)"]:::ai
-        Facts["Fact extractor: conditions, meds, allergies, conflicts"]:::ai
-    end
-
-    subgraph Data ["State"]
-        DB[("PostgreSQL (Neon) or SQLite: visits, audit, access_logs, documents, chunks, vectors, jobs, captures")]:::storage
-        Files["Original files: local disk or S3-compatible bucket, Fernet encrypted"]:::storage
-    end
-
-    subgraph Ops ["Operations"]
-        Worker["Job worker: in-process or Celery on Redis"]:::ops
-        Obs["Prometheus metrics, OpenTelemetry traces"]:::ops
-        Backup["Encrypted backups, restore drill, retention"]:::ops
-        CI["CI: pytest, OpenAPI contract, ONNX parity"]:::ops
-    end
-
-    Nurse --> Login --> Queue
-    Nurse --> Intake
-    Nurse --> Review
-    Admin --> Queue
-
-    Intake -->|"POST /triage"| Gate
-    Intake -.->|"API unreachable"| Edge
-    Intake -->|"upload, transcribe"| Gate
-    Review -->|"verify or reject"| Gate
-
-    Gate --> Pipeline
-    Gate --> IntakeSvc
-    Gate --> Ingest
-
-    Pipeline -->|"1. history"| Retr
-    Pipeline -->|"2. facts"| Facts
-    Pipeline -->|"3. predict"| ML
-    Pipeline -->|"4. de-identified prompt"| LLM
-    Pipeline -->|"5. floor"| Rules
-    LLM --> Ground
-    Ground --> Pipeline
-    Pipeline -->|"fuse, confidence, audit"| DB
-
-    Ingest --> Worker --> DB
-    Ingest --> Files
-    IntakeSvc --> DB
-    Retr --> DB
-    Facts --> DB
-
-    DB --> Backup
-    Pipeline --> Obs
-    Worker --> Obs
-```
+Vector version: [docs/images/system-architecture.svg](docs/images/system-architecture.svg).
 
 ### Decision flow for one triage request
 
@@ -131,35 +49,7 @@ flowchart TD
 
 Retrieval answers one question: which parts of this patient's own record matter for today's complaint. It is scoped to a single patient by construction.
 
-```mermaid
-%%{init: {'theme': 'default', 'themeVariables': { 'edgeLabelBackground':'#ffffff', 'textColor': '#000000'}}}%%
-flowchart LR
-    classDef step fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#14532d
-    classDef store fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f
-    classDef gate fill:#fdf4ff,stroke:#d946ef,stroke-width:2px,color:#701a75
-
-    subgraph Offline ["Indexing (job worker)"]
-        U["Upload"]:::step --> V["Validate: magic bytes, size, PDF JS/embedded files, zip-bomb DOCX, optional ClamAV"]:::step
-        V --> P["Parse: PyMuPDF, python-docx, text. Scans go to OCR"]:::step
-        P --> C["Section-aware chunks, about 900 chars, 150 overlap, offsets kept"]:::step
-        C --> E["Embed: potion-retrieval-32M, L2-normalised float32"]:::step
-        E --> S[("document_chunks: text, vector, section, page range, model name")]:::store
-    end
-
-    subgraph Online ["Query time (per triage request)"]
-        Q["Complaint"]:::step --> N["Normalise and expand: abbreviations, lay terms, 3 query variants"]:::step
-        N --> D["Dense: best cosine across variants"]:::step
-        N --> B["BM25 with collection-wide IDF"]:::step
-        S --> D
-        S --> B
-        D --> R["Reciprocal Rank Fusion, k=60"]:::step
-        B --> R
-        R --> G{"Best score above calibrated threshold?"}:::gate
-        G -->|no| NM["No note sent to LLM. Facts still sent. UI says no confident match"]:::gate
-        G -->|yes| PC["Parent section, compressed around the hit"]:::step
-        PC --> L["D1..Dn passages to LLM, cited by claims"]:::step
-    end
-```
+![Patient history retrieval pipeline](docs/images/rag-pipeline.png)
 
 **Chunking.** Sections start at headings (PDF font size and bold, DOCX heading styles, text heading patterns, and a clinical heading lexicon). Chunks never cross a section boundary and overlap by whole sentences. The text that gets embedded is `"<doc type> | <section> | <text>"`, so the section name is part of the vector.
 
