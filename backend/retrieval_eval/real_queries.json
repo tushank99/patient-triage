@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "note": "Hand-labelled queries over the seeded master set (backend/data/patient_master.json). Relevance is at DOCUMENT level: every listed document states the answer. Query wording deliberately differs from the chart wording.",
+  "queries": [
+    {"mrn": "MRN-A3F9", "text": "previous heart attack", "relevant": ["MRN-A3F9:discharge_summary:2022-03-08", "MRN-A3F9:problem_list"]},
+    {"mrn": "MRN-A3F9", "text": "was she pregnant before", "relevant": ["MRN-A3F9:er_note:2021-01-20", "MRN-A3F9:problem_list"]},
+    {"mrn": "MRN-A3F9", "text": "allergic to antibiotics", "relevant": ["MRN-A3F9:allergy_record"]},
+    {"mrn": "MRN-GER-005", "text": "is she on a blood thinner", "relevant": ["MRN-GER-005:medication_list", "MRN-GER-005:er_note:2025-02-18", "MRN-GER-005:clinic_note:2026-06-03"]},
+    {"mrn": "MRN-GER-005", "text": "has she fallen before", "relevant": ["MRN-GER-005:er_note:2025-02-18", "MRN-GER-005:clinic_note:2026-06-03", "MRN-GER-005:problem_list"]},
+    {"mrn": "MRN-C2M8", "text": "baseline oxygen level", "relevant": ["MRN-C2M8:discharge_summary:2025-12-03"]},
+    {"mrn": "MRN-C2M8", "text": "lung function tests", "relevant": ["MRN-C2M8:lab_summary:2026-06-18"]},
+    {"mrn": "MRN-Z8Q3", "text": "ever needed a breathing tube for asthma", "relevant": ["MRN-Z8Q3:discharge_summary:2023-02-06"]},
+    {"mrn": "MRN-Z8Q3", "text": "can she take ibuprofen", "relevant": ["MRN-Z8Q3:allergy_record", "MRN-Z8Q3:problem_list"]},
+    {"mrn": "MRN-V2P4", "text": "no spleen", "relevant": ["MRN-V2P4:problem_list", "MRN-V2P4:discharge_summary:2020-05-30"]},
+    {"mrn": "MRN-CNF-003", "text": "size of the aorta", "relevant": ["MRN-CNF-003:imaging_report:2025-03-04", "MRN-CNF-003:problem_list", "MRN-CNF-003:clinic_note:2026-08-12"]},
+    {"mrn": "MRN-L8N2", "text": "bad reaction to amoxicillin", "relevant": ["MRN-L8N2:er_note:2019-11-02", "MRN-L8N2:allergy_record"]},
+    {"mrn": "MRN-STD-010", "text": "water pill", "relevant": ["MRN-STD-010:medication_list"]},
+    {"mrn": "MRN-STD-010", "text": "weak heart", "relevant": ["MRN-STD-010:problem_list", "MRN-STD-010:discharge_summary:2025-11-02"]},
+    {"mrn": "MRN-W5R9", "text": "DKA", "relevant": ["MRN-W5R9:discharge_summary:2024-01-19", "MRN-W5R9:problem_list"]},
+    {"mrn": "MRN-B7K2", "text": "seizure medicine", "relevant": ["MRN-B7K2:medication_list", "MRN-B7K2:er_note:2025-09-11"]},
+    {"mrn": "MRN-STD-008", "text": "cough from blood pressure tablet", "relevant": ["MRN-STD-008:clinic_note:2026-06-24"]},
+    {"mrn": "MRN-E4R7", "text": "blood clot history", "relevant": ["MRN-E4R7:er_note:2022-06-09", "MRN-E4R7:problem_list", "MRN-E4R7:clinic_note:2022-12-15"]}
+  ]
+}

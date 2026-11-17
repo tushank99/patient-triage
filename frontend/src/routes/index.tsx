@@ -13,6 +13,7 @@ import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
 import { PatientRow } from "../components/PatientRow";
 import { EsiLevel, Patient, ESI_META, formatWait, useTriage } from "../lib/triage-context";
+import { useAuth } from "../lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,8 +42,8 @@ export const Route = createFileRoute("/")({
 function StatsRow({ patients, alerts, waitOffset }: { patients: Patient[]; alerts: number; waitOffset: number }) {
   const longest = patients.length > 0 ? Math.max(...patients.map((p) => p.waitMins + waitOffset)) : 0;
   const stats = [
-    { label: "Total Patients", value: String(patients.length), icon: Users, note: "+6 in last hour" },
-    { label: "Active Staff", value: "8", icon: Activity, note: "3 MD · 5 RN" },
+    { label: "Total Patients", value: String(patients.length), icon: Users, note: "In the live queue" },
+    { label: "Needs Review", value: String(patients.filter((p) => p.needsReview).length), icon: Activity, note: "Flagged for clinician review" },
     { label: "Longest Wait", value: formatWait(longest).replace("mins", "m"), icon: Timer, note: "ESI 3 threshold 60m" },
     { label: "Triage Alerts", value: String(alerts), icon: AlertTriangle, note: "Needs reassessment" },
   ];
@@ -131,7 +132,8 @@ function EsiDonut({ patients }: { patients: Patient[] }) {
 /* ---------- Page ---------- */
 
 function TriageDashboard() {
-  const { patients, surge, waitOffset, setIsAddModalOpen } = useTriage();
+  const { patients, surge, waitOffset, setIsAddModalOpen, isLoading, loadError } = useTriage();
+  const { can } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // We consider a patient alerting if waitMins + offset triggers the condition.
@@ -171,6 +173,9 @@ function TriageDashboard() {
             )}
           </div>
 
+          {loadError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">Could not refresh the queue: {loadError}</p>}
+           {isLoading && patients.length === 0 && <p className="text-sm text-muted-foreground">Loading queue…</p>}
+
            <StatsRow patients={patients} alerts={alerts} waitOffset={waitOffset} />
 
           <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -179,9 +184,10 @@ function TriageDashboard() {
                  <h2 className="text-lg font-bold tracking-tight">Patient Queue</h2>
                  <p className="text-xs text-muted-foreground">Showing top 6 of {patients.length} patients · live triage order</p>
                </div>
-               <button 
-                 type="button" 
+               <button
+                 type="button"
                  onClick={() => setIsAddModalOpen(true)}
+                 hidden={!can("triage:write")}
                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                >
                 <Plus className="h-4 w-4" />
@@ -199,10 +205,10 @@ function TriageDashboard() {
 
             <div>
               {topPatients.map((p) => (
-                 <PatientRow key={p.mrn} patient={p} />
+                 <PatientRow key={p.id} patient={p} />
               ))}
             </div>
-            
+
             {patients.length > 6 && (
               <div className="border-t border-border bg-muted/10 p-3 text-center">
                 <Link

@@ -45,3 +45,42 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# ML training runs, local MLflow store and downloaded datasets (never commit)
+backend/ml_runs/
+mlruns/
+backend/data/external/
+backend/data/uploads/
+backend/data/chroma/
+backend/data/models/
+
+# Phase 7
+backend/data/backups/
+e2e.db
+frontend/test-results/
+frontend/playwright-report/
+
+# Test / lint / coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Keys and certs
+*.pem
+*.key
+*.p12
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Local DB copies / backups
+backend/data/*.db
+backend/data/*.sqlite*
+
+# onnxruntime-web vendor dist copied into frontend/public (~98MB).
+# Only the jsep runtime used by src/lib/onnx-engine.ts is kept.
+frontend/public/ort*
+!frontend/public/ort-wasm-simd-threaded.jsep.mjs
+!frontend/public/ort-wasm-simd-threaded.jsep.wasm

@@ -1,8 +1,11 @@
 import { Bell, Bot, Search, Zap } from "lucide-react";
 import { useTriage } from "../lib/triage-context";
+import { ROLE_LABEL, useAuth } from "../lib/auth";
 
 export function Header() {
   const { aiActive, setAiActive, surge, setSurge, searchQuery, setSearchQuery } = useTriage();
+  const { user, can } = useAuth();
+  const initials = (user?.display_name ?? "?").split(/[\s,]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-border bg-card/95 px-6 backdrop-blur">
@@ -44,7 +47,7 @@ export function Header() {
           )}
         </div>
 
-        <button
+        {can("demo:surge") && <button
           onClick={() => setSurge(!surge)}
           className={`inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors ${
             surge
@@ -53,8 +56,8 @@ export function Header() {
           }`}
         >
           <Zap className="h-4 w-4" />
-          <span className="whitespace-nowrap">{surge ? "Surge Active" : "Simulate Surge"}</span>
-        </button>
+          <span className="whitespace-nowrap">{surge ? "End Surge" : "Simulate Surge"}</span>
+        </button>}
 
         <button type="button" className="relative rounded-lg p-2 text-muted-foreground hover:bg-muted" aria-label="Notifications">
           <Bell className="h-5 w-5" />
@@ -63,11 +66,11 @@ export function Header() {
 
         <div className="flex items-center gap-3 border-l border-border pl-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-            SR
+            {initials}
           </div>
           <div className="hidden leading-tight lg:block">
-            <p className="whitespace-nowrap text-sm font-semibold">Sarah Rivera, RN</p>
-            <p className="text-xs text-muted-foreground">Charge Nurse</p>
+            <p className="whitespace-nowrap text-sm font-semibold">{user?.display_name}</p>
+            <p className="text-xs text-muted-foreground">{ROLE_LABEL[user?.role ?? ""] ?? user?.role}</p>
           </div>
         </div>
       </div>

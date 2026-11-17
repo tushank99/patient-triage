@@ -1,0 +1,144 @@
+{
+  "ruleset_version": "2026.11-phase1",
+  "disclaimer": "Demo heuristics inspired by ESI v4 danger-zone criteria. Not clinically validated: a clinician must review every rule before any real use. A rule can only RAISE acuity (lower the ESI number); nothing downstream may undo it.",
+  "semantics": "A rule fires when every condition in `all` holds and, if `any` is present, at least one condition in `any` holds. A condition on a missing field is false, so rules never fire on data that was not collected. Every rule carries boundary_tests that CI executes: each must have at least one case that fires and one that does not.",
+  "rules": [
+    {
+      "id": "R-HR-EXTREME-ADULT", "version": 1, "esi": 1, "status": "demo-unvalidated",
+      "reason": "Extreme heart rate (<40 or >150 bpm, age 12+)",
+      "source": "Demo heuristic carried over from the original rules_engine.py; ESI v4 handbook danger-zone vitals (adult).",
+      "all": [{"field": "age_years", "op": ">=", "value": 12}],
+      "any": [{"field": "heart_rate", "op": "<", "value": 40}, {"field": "heart_rate", "op": ">", "value": 150}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 30, "heart_rate": 151}, "fires": true},
+        {"inputs": {"age_years": 30, "heart_rate": 150}, "fires": false},
+        {"inputs": {"age_years": 30, "heart_rate": 39}, "fires": true},
+        {"inputs": {"age_years": 30, "heart_rate": 40}, "fires": false},
+        {"inputs": {"age_years": 11.9, "heart_rate": 170}, "fires": false},
+        {"inputs": {"age_years": 30}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-HR-EXTREME-CHILD", "version": 1, "esi": 1, "status": "demo-unvalidated",
+      "reason": "Extreme heart rate for age 1-11 (<60 or >180 bpm)",
+      "source": "Demo heuristic; pediatric thresholds so a normal child HR does not trip the adult rule.",
+      "all": [{"field": "age_years", "op": ">=", "value": 1}, {"field": "age_years", "op": "<", "value": 12}],
+      "any": [{"field": "heart_rate", "op": "<", "value": 60}, {"field": "heart_rate", "op": ">", "value": 180}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 5, "heart_rate": 181}, "fires": true},
+        {"inputs": {"age_years": 5, "heart_rate": 180}, "fires": false},
+        {"inputs": {"age_years": 5, "heart_rate": 59}, "fires": true},
+        {"inputs": {"age_years": 12, "heart_rate": 181}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-HR-EXTREME-INFANT", "version": 1, "esi": 1, "status": "demo-unvalidated",
+      "reason": "Extreme heart rate for infant (<80 or >200 bpm)",
+      "source": "Demo heuristic; infant thresholds.",
+      "all": [{"field": "age_years", "op": "<", "value": 1}],
+      "any": [{"field": "heart_rate", "op": "<", "value": 80}, {"field": "heart_rate", "op": ">", "value": 200}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 0.25, "heart_rate": 201}, "fires": true},
+        {"inputs": {"age_years": 0.25, "heart_rate": 165}, "fires": false},
+        {"inputs": {"age_years": 0.25, "heart_rate": 79}, "fires": true},
+        {"inputs": {"age_years": 1.0, "heart_rate": 201}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-HYPOXIA", "version": 1, "esi": 2, "status": "demo-unvalidated",
+      "reason": "Hypoxia (SpO2 <= 92%)",
+      "source": "Demo heuristic carried over from the original rules_engine.py; ESI v4 handbook (SpO2 < 92% is a danger-zone vital).",
+      "all": [{"field": "oxygen_saturation", "op": "<=", "value": 92}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 40, "oxygen_saturation": 92}, "fires": true},
+        {"inputs": {"age_years": 40, "oxygen_saturation": 92.1}, "fires": false},
+        {"inputs": {"age_years": 40, "oxygen_saturation": 89}, "fires": true},
+        {"inputs": {"age_years": 40}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-HYPOTENSION-ADULT", "version": 1, "esi": 2, "status": "demo-unvalidated",
+      "reason": "Hypotension (systolic BP < 90 mmHg, adult)",
+      "source": "Demo heuristic; matches the hypotension badge threshold.",
+      "all": [{"field": "age_years", "op": ">=", "value": 18}, {"field": "systolic_bp", "op": "<", "value": 90}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 40, "systolic_bp": 89}, "fires": true},
+        {"inputs": {"age_years": 40, "systolic_bp": 90}, "fires": false},
+        {"inputs": {"age_years": 17.9, "systolic_bp": 80}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-RR-ABNORMAL-ADULT", "version": 1, "esi": 2, "status": "demo-unvalidated",
+      "reason": "Abnormal respiratory rate (>30 or <8, adult)",
+      "source": "Demo heuristic.",
+      "all": [{"field": "age_years", "op": ">=", "value": 18}],
+      "any": [{"field": "respiratory_rate", "op": ">", "value": 30}, {"field": "respiratory_rate", "op": "<", "value": 8}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 40, "respiratory_rate": 31}, "fires": true},
+        {"inputs": {"age_years": 40, "respiratory_rate": 30}, "fires": false},
+        {"inputs": {"age_years": 40, "respiratory_rate": 7}, "fires": true},
+        {"inputs": {"age_years": 40, "respiratory_rate": 8}, "fires": false},
+        {"inputs": {"age_years": 5, "respiratory_rate": 40}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-PED-FEVER", "version": 1, "esi": 2, "status": "demo-unvalidated",
+      "reason": "Infant 3 months or younger with fever >= 38.0 C",
+      "source": "Demo heuristic carried over from the original rules_engine.py; ESI v4 handbook (febrile infant <= 3 months).",
+      "all": [{"field": "age_years", "op": "<=", "value": 0.25}, {"field": "temperature_celsius", "op": ">=", "value": 38.0}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 0.25, "temperature_celsius": 38.0}, "fires": true},
+        {"inputs": {"age_years": 0.25, "temperature_celsius": 37.9}, "fires": false},
+        {"inputs": {"age_years": 0.26, "temperature_celsius": 39.0}, "fires": false},
+        {"inputs": {"age_years": 0.1}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-HIGH-RISK-COMPLAINT", "version": 1, "esi": 2, "status": "demo-unvalidated",
+      "reason": "High-risk presentation in complaint text",
+      "source": "Demo keyword heuristic (dissection, ACS, stroke, airway, altered consciousness). Keyword matching is crude: the LLM layer is expected to catch paraphrases, and the rule floor catches the phrases below even if it does not.",
+      "all": [{"field": "complaint", "op": "contains_any", "value": [
+        "tearing", "ripping pain", "crushing chest", "chest pain radiating", "radiating to left arm",
+        "slurred speech", "facial droop", "sided weakness", "unresponsive", "not breathing",
+        "throat closing", "anaphylaxis", "suicidal", "seizure", "worst headache",
+        "loss of consciousness", "loc at scene", "stiff neck"
+      ]}],
+      "boundary_tests": [
+        {"inputs": {"age_years": 60, "complaint": "sharp tearing pain between shoulder blades"}, "fires": true},
+        {"inputs": {"age_years": 60, "complaint": "Left-sided weakness and slurred speech"}, "fires": true},
+        {"inputs": {"age_years": 60, "complaint": "mild headache since morning"}, "fires": false},
+        {"inputs": {"age_years": 60}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-GERI-FALL", "version": 2, "esi": 2, "status": "demo-unvalidated",
+      "reason": "Geriatric fall / head trauma protocol (age 65+)",
+      "source": "Demo heuristic; v2 uses whole-word matching so 'headache' no longer matches 'head'.",
+      "all": [
+        {"field": "age_years", "op": ">=", "value": 65},
+        {"field": "complaint", "op": "has_word_any", "value": ["fall", "fell", "fallen", "falls", "hit head", "head injury", "head trauma", "syncope", "fainted"]}
+      ],
+      "boundary_tests": [
+        {"inputs": {"age_years": 65, "complaint": "fell in the bathroom"}, "fires": true},
+        {"inputs": {"age_years": 64.9, "complaint": "fell in the bathroom"}, "fires": false},
+        {"inputs": {"age_years": 80, "complaint": "worsening headache for two days"}, "fires": false},
+        {"inputs": {"age_years": 80, "complaint": "waterfall photo"}, "fires": false}
+      ]
+    },
+    {
+      "id": "R-ANTICOAG-HEAD-INJURY", "version": 1, "esi": 2, "status": "demo-unvalidated",
+      "reason": "Fall or head injury in a patient on an active anticoagulant (from retrieved history)",
+      "source": "Demo heuristic; needs structured history, so it only runs on the server.",
+      "all": [
+        {"field": "history.on_anticoagulant", "op": "==", "value": true},
+        {"field": "complaint", "op": "has_word_any", "value": ["fall", "fell", "fallen", "hit head", "head injury", "head trauma", "head laceration", "forehead", "scalp"]}
+      ],
+      "boundary_tests": [
+        {"inputs": {"age_years": 50, "complaint": "fell and hit head", "history": {"on_anticoagulant": true}}, "fires": true},
+        {"inputs": {"age_years": 50, "complaint": "fell and hit head", "history": {"on_anticoagulant": false}}, "fires": false},
+        {"inputs": {"age_years": 50, "complaint": "fell and hit head"}, "fires": false},
+        {"inputs": {"age_years": 50, "complaint": "sore throat", "history": {"on_anticoagulant": true}}, "fires": false}
+      ]
+    }
+  ]
+}

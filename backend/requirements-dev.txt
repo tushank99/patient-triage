@@ -1,0 +1,12 @@
+# Training, ONNX export and tests. Not needed at runtime.
+-r requirements.txt
+pandas==3.0.5
+mlflow-skinny==3.18.0
+scipy>=1.11
+onnx==1.22.0
+onnxmltools==1.16.0
+onnxruntime==1.29.0
+pytest==9.2.0
+-r requirements-multimodal.txt  # so CI exercises the real OCR path
+# Starlette 0.36's TestClient needs httpx<0.28 (0.28 removed the `app` argument).
+httpx==0.27.2

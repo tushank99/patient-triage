@@ -7,6 +7,7 @@ import { Header } from "../components/Header";
 import { PatientRow } from "../components/PatientRow";
 import { ArchiveTable } from "../components/ArchiveTable";
 import { useTriage } from "../lib/triage-context";
+import { useAuth } from "../lib/auth";
 
 export const Route = createFileRoute("/patients")({
   head: () => ({
@@ -17,8 +18,9 @@ export const Route = createFileRoute("/patients")({
 
 function PatientsList() {
   const { patients, waitOffset, setWaitOffset, sortMode, setSortMode, setIsAddModalOpen } = useTriage();
+  const { can } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  
+
   const [viewMode, setViewMode] = useState<"QUEUE" | "ARCHIVE">("QUEUE");
 
   return (
@@ -27,7 +29,7 @@ function PatientsList() {
       <div className={`flex-1 transition-[padding] duration-200 ${sidebarCollapsed ? "pl-20" : "pl-64"} flex flex-col min-w-0`}>
         <Header />
         <main className="space-y-6 p-6 flex-1 flex flex-col">
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background p-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground" aria-label="Back to Dashboard">
@@ -38,25 +40,25 @@ function PatientsList() {
                 <p className="text-sm text-muted-foreground">Manage active waitlist and view historical records.</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
               {/* VIEW TOGGLE */}
               <div className="flex p-1 bg-slate-100 rounded-lg mr-4">
-                <button 
-                  onClick={() => setViewMode("QUEUE")} 
+                <button
+                  onClick={() => setViewMode("QUEUE")}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all ${viewMode === "QUEUE" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
                 >
                   <List className="w-4 h-4" /> Active Queue
                 </button>
-                <button 
-                  onClick={() => setViewMode("ARCHIVE")} 
+                <button
+                  onClick={() => setViewMode("ARCHIVE")}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all ${viewMode === "ARCHIVE" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
                 >
                   <History className="w-4 h-4" /> Records Archive
                 </button>
               </div>
 
-              <button type="button" onClick={() => setIsAddModalOpen(true)} className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+              <button type="button" hidden={!can("triage:write")} onClick={() => setIsAddModalOpen(true)} className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
                 <Plus className="h-4 w-4" /> Add Patient
               </button>
             </div>
@@ -72,7 +74,7 @@ function PatientsList() {
                   <input id="wait-offset-patients" type="range" min="0" max="60" step="5" value={waitOffset} onChange={(event) => setWaitOffset(Number(event.target.value))} className="h-2 min-w-0 flex-1 cursor-pointer accent-blue-600" />
                   <output htmlFor="wait-offset-patients" className="w-20 shrink-0 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 px-3 py-2 text-center text-sm font-bold tabular-nums">+{waitOffset}mins</output>
                 </div>
-                
+
                 {/* DIVIDER */}
                 <div className="hidden lg:block w-px h-8 bg-slate-300 mx-1"></div>
 
@@ -89,7 +91,7 @@ function PatientsList() {
               </div>
               <div className="flex-1 overflow-auto">
                 {patients.length > 0 ? (
-                  patients.map((p) => <PatientRow key={p.mrn} patient={p} />)
+                  patients.map((p) => <PatientRow key={p.id} patient={p} />)
                 ) : (
                   <div className="p-8 text-center text-muted-foreground text-sm">No patients found.</div>
                 )}

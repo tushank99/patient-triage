@@ -1,16 +1,15 @@
 /* eslint-disable prettier/prettier */
-import { AlertTriangle, Activity, UserMinus } from "lucide-react";
+import { AlertTriangle, Activity, UserMinus, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { ESI_META, Patient, checkDeterioration, formatWait, useTriage } from "../lib/triage-context";
+import { useAuth } from "../lib/auth";
 
 
-interface ExtendedPatient extends Patient {
-  aiConfidence?: number;
-}
-
-export function PatientRow({ patient }: { patient: ExtendedPatient }) {
-  const { aiActive, waitOffset, setUpdateVitalsModal, setDispositionModal } = useTriage();
+export function PatientRow({ patient }: { patient: Patient }) {
+  const { aiActive, waitOffset, setUpdateVitalsModal, setDispositionModal, acknowledgeReview } = useTriage();
+  const { can } = useAuth();
+  const canAct = can("triage:write");
   const meta = ESI_META[patient.esi];
   const displayedWait = patient.waitMins + waitOffset;
   const isDeteriorated = checkDeterioration(patient, waitOffset);
@@ -23,8 +22,8 @@ export function PatientRow({ patient }: { patient: ExtendedPatient }) {
       const timer = setTimeout(() => setIsNew(false), 3000);
       return () => clearTimeout(timer);
     }
-    
-    return undefined; 
+
+    return undefined;
   }, [patient.addedAt]);
 
   return (
@@ -55,6 +54,19 @@ export function PatientRow({ patient }: { patient: ExtendedPatient }) {
           </Tooltip>
         </TooltipProvider>
 
+        {patient.needsReview && (
+          <div className="mt-1 flex items-center gap-2">
+            <span title={patient.reviewReasons.join("\n")} className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+              <ShieldCheck className="h-3 w-3" /> Review needed
+            </span>
+            {canAct && (
+              <button type="button" onClick={() => void acknowledgeReview(patient.id)} className="text-[11px] font-semibold text-blue-600 hover:underline">
+                Mark reviewed
+              </button>
+            )}
+          </div>
+        )}
+
         {isDeteriorated && (
           <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-esi-1-soft px-2 py-0.5 text-[11px] font-bold text-esi-1">
             <AlertTriangle className="h-3 w-3" />
@@ -71,8 +83,8 @@ export function PatientRow({ patient }: { patient: ExtendedPatient }) {
         </span>
         {aiActive && (
           <p className="mt-1 text-[11px] text-muted-foreground font-medium">
-            AI Confidence: <span className={`font-bold ${patient.aiConfidence && patient.aiConfidence < 80 ? 'text-amber-600' : 'text-emerald-600'}`}>
-              {patient.aiConfidence ?? (Math.floor(Math.random() * 15) + 80)}%
+            Model probability: <span className={`font-bold ${patient.aiConfidence === undefined ? 'text-muted-foreground' : patient.aiConfidence < 80 ? 'text-amber-600' : 'text-emerald-600'}`}>
+              {patient.aiConfidence === undefined ? "—" : `${patient.aiConfidence}%`}
             </span>
           </p>
         )}
@@ -83,20 +95,20 @@ export function PatientRow({ patient }: { patient: ExtendedPatient }) {
           {formatWait(displayedWait)}
         </p>
         <div className="flex gap-1">
-          <button 
+          {canAct && <button
             onClick={() => setUpdateVitalsModal({ isOpen: true, patientId: patient.id })}
             title="Update Vitals"
             className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
           >
             <Activity className="h-4 w-4" />
-          </button>
-          <button 
+          </button>}
+          {canAct && <button
             onClick={() => setDispositionModal({ isOpen: true, patientId: patient.id })}
             title="Discharge Patient"
             className="p-1.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors"
           >
             <UserMinus className="h-4 w-4" />
-          </button>
+          </button>}
         </div>
       </div>
     </div>

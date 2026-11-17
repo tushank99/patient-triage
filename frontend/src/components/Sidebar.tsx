@@ -11,9 +11,11 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { SettingsModal } from "./SettingsModal";
+import { useAuth } from "../lib/auth";
 
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { signOut } = useAuth();
   const links = [
     { label: "Dashboard", icon: LayoutDashboard, to: "/" as const },
     { label: "Patient Details", icon: ClipboardList, to: "/patients" as const },
@@ -78,6 +80,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         <div className="border-t border-border p-3">
           <button
             type="button"
+            onClick={signOut}
             aria-label="Logout"
             title={collapsed ? "Logout" : undefined}
             className={`flex w-full items-center rounded-lg py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-destructive ${collapsed ? "justify-center px-2" : "gap-3 px-3"}`}
@@ -87,7 +90,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           </button>
         </div>
       </aside>
-      
+
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </>
   );

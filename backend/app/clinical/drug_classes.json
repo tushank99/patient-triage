@@ -1,0 +1,18 @@
+{
+  "version": "2026.11-phase5",
+  "note": "Small, engineer-written cross-reactivity and class map for conflict detection. Not a drug database: a clinician/pharmacist must review it, and real deployments should use RxNorm/ATC.",
+  "allergy_classes": {
+    "penicillin": ["penicillin", "amoxicillin", "ampicillin", "augmentin", "amoxicillin-clavulanate", "piperacillin", "flucloxacillin", "dicloxacillin"],
+    "sulfonamide": ["sulfonamide", "sulfa", "sulfamethoxazole", "bactrim", "trimethoprim-sulfamethoxazole", "septra"],
+    "nsaid": ["nsaid", "nsaids", "aspirin", "ibuprofen", "naproxen", "ketorolac", "diclofenac", "advil", "motrin", "aleve"],
+    "codeine": ["codeine", "tylenol 3", "co-codamol"],
+    "morphine": ["morphine"],
+    "iodinated contrast": ["contrast", "iodinated contrast", "ct contrast"],
+    "latex": ["latex"],
+    "nitrofurantoin": ["nitrofurantoin", "macrobid"]
+  },
+  "anticoagulants": ["warfarin", "coumadin", "apixaban", "eliquis", "rivaroxaban", "xarelto", "dabigatran", "pradaxa", "edoxaban", "heparin", "enoxaparin", "lovenox"],
+  "anticoagulant_phrases": ["blood thinner", "blood thinners", "anticoagulant", "anticoagulants", "anticoagulation"],
+  "temporary_conditions": ["pregnan", "infection", "pneumonia", "sprain", "fracture", "cellulitis", "bronchitis", "ketoacidosis", "cyst"],
+  "temporary_window_days": 270
+}

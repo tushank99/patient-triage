@@ -1,0 +1,100 @@
+{
+  "bm25|fastembed:minishlab/potion-retrieval-32M|none|expand=False": {
+    "answerable_kept": 1.0,
+    "auroc": 0.5993716931216931,
+    "benchmark_version": "1.0",
+    "threshold": -1.0,
+    "unanswerable_rejected": 0.0
+  },
+  "bm25|fastembed:minishlab/potion-retrieval-32M|none|expand=True": {
+    "answerable_kept": 1.0,
+    "auroc": 0.7665343915343915,
+    "benchmark_version": "1.0",
+    "threshold": -1.0,
+    "unanswerable_rejected": 0.0
+  },
+  "bm25|hash-v2|none|expand=False": {
+    "answerable_kept": 1.0,
+    "auroc": 0.5993716931216931,
+    "benchmark_version": "1.0",
+    "threshold": -1.0,
+    "unanswerable_rejected": 0.0
+  },
+  "bm25|hash-v2|none|expand=True": {
+    "answerable_kept": 1.0,
+    "auroc": 0.7665343915343915,
+    "benchmark_version": "1.0",
+    "threshold": -1.0,
+    "unanswerable_rejected": 0.0
+  },
+  "hybrid|fastembed:minishlab/potion-retrieval-32M|fastembed-ce:Xenova/ms-marco-MiniLM-L-6-v2|expand=True": {
+    "answerable_kept": 0.8928571428571429,
+    "auroc": 0.8465608465608465,
+    "benchmark_version": "1.0",
+    "threshold": 0.0,
+    "unanswerable_rejected": 0.2777777777777778
+  },
+  "hybrid|fastembed:minishlab/potion-retrieval-32M|none|expand=False": {
+    "answerable_kept": 0.8928571428571429,
+    "auroc": 0.7784391534391535,
+    "benchmark_version": "1.0",
+    "threshold": 0.1648,
+    "unanswerable_rejected": 0.4444444444444444
+  },
+  "hybrid|fastembed:minishlab/potion-retrieval-32M|none|expand=True": {
+    "answerable_kept": 0.8928571428571429,
+    "auroc": 0.8544973544973545,
+    "benchmark_version": "1.0",
+    "threshold": 0.183,
+    "unanswerable_rejected": 0.5
+  },
+  "hybrid|hash-v2|fastembed-ce:Xenova/ms-marco-MiniLM-L-6-v2|expand=True": {
+    "answerable_kept": 0.8928571428571429,
+    "auroc": 0.8458994708994709,
+    "benchmark_version": "1.0",
+    "threshold": 0.0,
+    "unanswerable_rejected": 0.3055555555555556
+  },
+  "hybrid|hash-v2|none|expand=False": {
+    "answerable_kept": 1.0,
+    "auroc": 0.5,
+    "benchmark_version": "1.0",
+    "threshold": 0.0,
+    "unanswerable_rejected": 0.0
+  },
+  "hybrid|hash-v2|none|expand=True": {
+    "answerable_kept": 1.0,
+    "auroc": 0.6481481481481481,
+    "benchmark_version": "1.0",
+    "threshold": 0.0,
+    "unanswerable_rejected": 0.0
+  },
+  "vector|fastembed:minishlab/potion-retrieval-32M|none|expand=False": {
+    "answerable_kept": 0.8928571428571429,
+    "auroc": 0.7939814814814815,
+    "benchmark_version": "1.0",
+    "threshold": 0.1772,
+    "unanswerable_rejected": 0.5277777777777778
+  },
+  "vector|fastembed:minishlab/potion-retrieval-32M|none|expand=True": {
+    "answerable_kept": 0.8928571428571429,
+    "auroc": 0.8548280423280423,
+    "benchmark_version": "1.0",
+    "threshold": 0.1939,
+    "unanswerable_rejected": 0.4722222222222222
+  },
+  "vector|hash-v2|none|expand=False": {
+    "answerable_kept": 1.0,
+    "auroc": 0.46279761904761907,
+    "benchmark_version": "1.0",
+    "threshold": 0.0,
+    "unanswerable_rejected": 0.0
+  },
+  "vector|hash-v2|none|expand=True": {
+    "answerable_kept": 1.0,
+    "auroc": 0.6213624338624338,
+    "benchmark_version": "1.0",
+    "threshold": 0.0,
+    "unanswerable_rejected": 0.0
+  }
+}

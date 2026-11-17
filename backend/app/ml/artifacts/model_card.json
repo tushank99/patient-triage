@@ -1,0 +1,1131 @@
+{
+  "run_id": "20261115-140225-synthetic-rules-d27139-v3",
+  "created_at": "2026-11-15T14:02:25.259520+00:00",
+  "model_version": "xgb-v3-synthetic-rules-20261115",
+  "label_source": "synthetic-rules",
+  "dataset": {
+    "name": "synthetic-n8000-seed42",
+    "info": {
+      "note": "rule-generated labels; plumbing only",
+      "n_rows": 8000,
+      "n_dropped_no_label_or_age": 0,
+      "n_out_of_range_set_missing": {
+        "age_years": 0,
+        "heart_rate": 0,
+        "systolic_bp": 0,
+        "diastolic_bp": 0,
+        "respiratory_rate": 0,
+        "oxygen_saturation": 0,
+        "temperature_celsius": 0,
+        "pain_score": 0
+      },
+      "missing_rate": {
+        "heart_rate": 0.1427,
+        "systolic_bp": 0.1507,
+        "diastolic_bp": 0.1542,
+        "respiratory_rate": 0.1424,
+        "oxygen_saturation": 0.1541,
+        "temperature_celsius": 0.1507,
+        "pain_score": 0.1519
+      },
+      "esi_distribution": {
+        "1": 187,
+        "2": 1579,
+        "3": 2562,
+        "4": 2834,
+        "5": 838
+      }
+    }
+  },
+  "dataset_sha256": "d271391ccc549128f46fbf01478a5a1393608e66610debba1095409a9961c5c0",
+  "split": {
+    "seed": 42,
+    "test_fraction": 0.2,
+    "n_dev": 6400,
+    "n_test": 1600,
+    "n_test_groups": 1600,
+    "test_groups_sha256": "2eb828672da8b47d1bdb804de802304b597de9aeff4472ff829c39c3829d44c6"
+  },
+  "seed": 42,
+  "git_sha": "4513233",
+  "feature_schema_version": "3",
+  "features": [
+    "age_years",
+    "heart_rate",
+    "systolic_bp",
+    "diastolic_bp",
+    "respiratory_rate",
+    "oxygen_saturation",
+    "temperature_celsius",
+    "pain_score",
+    "has_prior_history",
+    "heart_rate_missing",
+    "systolic_bp_missing",
+    "respiratory_rate_missing",
+    "oxygen_saturation_missing",
+    "temperature_celsius_missing",
+    "pain_score_missing"
+  ],
+  "raw_features": [
+    "age_years",
+    "heart_rate",
+    "systolic_bp",
+    "diastolic_bp",
+    "respiratory_rate",
+    "oxygen_saturation",
+    "temperature_celsius",
+    "pain_score",
+    "has_prior_history"
+  ],
+  "xgb_params": {
+    "n_estimators": 200,
+    "max_depth": 4,
+    "learning_rate": 0.07,
+    "subsample": 0.9,
+    "colsample_bytree": 0.9,
+    "objective": "multi:softprob",
+    "num_class": 5,
+    "tree_method": "hist",
+    "missing": "NaN",
+    "n_jobs": 1
+  },
+  "calibration": {
+    "method": "temperature",
+    "temperature": 0.909,
+    "fit_on": "out-of-fold development predictions"
+  },
+  "cv": {
+    "folds": 5,
+    "pooled": {
+      "rules_only": {
+        "n": 6400,
+        "accuracy": 0.4989,
+        "macro_f1": 0.3614,
+        "qwk": 0.5345,
+        "under_triage": 0.3652,
+        "severe_under_triage": 0.0452,
+        "over_triage": 0.1359,
+        "high_acuity_n": 1413,
+        "high_acuity_sensitivity": 0.7955,
+        "recall_by_esi": {
+          "1": 0.54,
+          "2": 0.7633,
+          "3": 0.0,
+          "4": 0.9475,
+          "5": 0.0
+        }
+      },
+      "logreg": {
+        "n": 6400,
+        "accuracy": 0.5908,
+        "macro_f1": 0.5418,
+        "qwk": 0.449,
+        "under_triage": 0.2047,
+        "severe_under_triage": 0.0853,
+        "over_triage": 0.2045,
+        "high_acuity_n": 1413,
+        "high_acuity_sensitivity": 0.5534,
+        "recall_by_esi": {
+          "1": 0.3867,
+          "2": 0.5036,
+          "3": 0.633,
+          "4": 0.5443,
+          "5": 0.8286
+        },
+        "nll": 0.978,
+        "brier": 0.5345,
+        "ece": 0.0172
+      },
+      "xgboost": {
+        "n": 6400,
+        "accuracy": 0.8956,
+        "macro_f1": 0.89,
+        "qwk": 0.8725,
+        "under_triage": 0.092,
+        "severe_under_triage": 0.0306,
+        "over_triage": 0.0123,
+        "high_acuity_n": 1413,
+        "high_acuity_sensitivity": 0.8457,
+        "recall_by_esi": {
+          "1": 0.82,
+          "2": 0.844,
+          "3": 0.8663,
+          "4": 0.9378,
+          "5": 0.9568
+        },
+        "nll": 0.3115,
+        "brier": 0.1566,
+        "ece": 0.0201
+      },
+      "xgboost+rules": {
+        "n": 6400,
+        "accuracy": 0.8675,
+        "macro_f1": 0.8075,
+        "qwk": 0.778,
+        "under_triage": 0.0859,
+        "severe_under_triage": 0.0283,
+        "over_triage": 0.0466,
+        "high_acuity_n": 1413,
+        "high_acuity_sensitivity": 0.8613,
+        "recall_by_esi": {
+          "1": 0.84,
+          "2": 0.8314,
+          "3": 0.8502,
+          "4": 0.8888,
+          "5": 0.9225
+        },
+        "nll": 0.3115,
+        "brier": 0.1566,
+        "ece": 0.0201
+      }
+    },
+    "fold_mean_std": {
+      "rules_only": {
+        "macro_f1": {
+          "mean": 0.3614,
+          "std": 0.0093
+        },
+        "high_acuity_sensitivity": {
+          "mean": 0.7955,
+          "std": 0.0207
+        },
+        "severe_under_triage": {
+          "mean": 0.0452,
+          "std": 0.0046
+        }
+      },
+      "logreg": {
+        "macro_f1": {
+          "mean": 0.5416,
+          "std": 0.0148
+        },
+        "high_acuity_sensitivity": {
+          "mean": 0.5534,
+          "std": 0.0199
+        },
+        "severe_under_triage": {
+          "mean": 0.0853,
+          "std": 0.0042
+        },
+        "ece": {
+          "mean": 0.0271,
+          "std": 0.004
+        },
+        "nll": {
+          "mean": 0.978,
+          "std": 0.0149
+        }
+      },
+      "xgboost": {
+        "macro_f1": {
+          "mean": 0.8898,
+          "std": 0.0151
+        },
+        "high_acuity_sensitivity": {
+          "mean": 0.8457,
+          "std": 0.0223
+        },
+        "severe_under_triage": {
+          "mean": 0.0306,
+          "std": 0.0035
+        },
+        "ece": {
+          "mean": 0.025,
+          "std": 0.0065
+        },
+        "nll": {
+          "mean": 0.3115,
+          "std": 0.0184
+        }
+      },
+      "xgboost+rules": {
+        "macro_f1": {
+          "mean": 0.8077,
+          "std": 0.0156
+        },
+        "high_acuity_sensitivity": {
+          "mean": 0.8613,
+          "std": 0.0245
+        },
+        "severe_under_triage": {
+          "mean": 0.0283,
+          "std": 0.0045
+        },
+        "ece": {
+          "mean": 0.025,
+          "std": 0.0065
+        },
+        "nll": {
+          "mean": 0.3115,
+          "std": 0.0184
+        }
+      }
+    },
+    "ablations": {
+      "without has_prior_history": {
+        "n": 6400,
+        "accuracy": 0.73,
+        "macro_f1": 0.6821,
+        "qwk": 0.7208,
+        "under_triage": 0.1586,
+        "severe_under_triage": 0.0256,
+        "over_triage": 0.1114,
+        "high_acuity_n": 1413,
+        "high_acuity_sensitivity": 0.862,
+        "recall_by_esi": {
+          "1": 0.8467,
+          "2": 0.8321,
+          "3": 0.8375,
+          "4": 0.5986,
+          "5": 0.6274
+        },
+        "nll": 0.5183,
+        "brier": 0.3001,
+        "ece": 0.0334
+      }
+    }
+  },
+  "test": {
+    "rules_only": {
+      "overall": {
+        "n": 1600,
+        "accuracy": 0.4944,
+        "macro_f1": 0.3508,
+        "qwk": 0.4873,
+        "under_triage": 0.3706,
+        "severe_under_triage": 0.0525,
+        "over_triage": 0.135,
+        "high_acuity_n": 353,
+        "high_acuity_sensitivity": 0.762,
+        "recall_by_esi": {
+          "1": 0.5135,
+          "2": 0.7342,
+          "3": 0.0,
+          "4": 0.9524,
+          "5": 0.0
+        }
+      },
+      "subgroups": {
+        "infant (<1y)": {
+          "n": 18,
+          "accuracy": 0.4444,
+          "macro_f1": 0.128,
+          "qwk": -0.1053,
+          "under_triage": 0.2222,
+          "severe_under_triage": 0.1111,
+          "over_triage": 0.3333,
+          "high_acuity_n": 2,
+          "high_acuity_sensitivity": 0.0,
+          "recall_by_esi": {
+            "1": 0.0,
+            "2": null,
+            "3": 0.0,
+            "4": 0.6667,
+            "5": 0.0
+          },
+          "small_sample": true
+        },
+        "pediatric (<18y)": {
+          "n": 338,
+          "accuracy": 0.4615,
+          "macro_f1": 0.253,
+          "qwk": 0.125,
+          "under_triage": 0.3432,
+          "severe_under_triage": 0.1036,
+          "over_triage": 0.1953,
+          "high_acuity_n": 66,
+          "high_acuity_sensitivity": 0.4697,
+          "recall_by_esi": {
+            "1": 0.2857,
+            "2": 0.3898,
+            "3": 0.0,
+            "4": 0.9034,
+            "5": 0.0
+          },
+          "small_sample": false
+        },
+        "adult (18-64y)": {
+          "n": 798,
+          "accuracy": 0.5238,
+          "macro_f1": 0.3978,
+          "qwk": 0.6194,
+          "under_triage": 0.3509,
+          "severe_under_triage": 0.0376,
+          "over_triage": 0.1253,
+          "high_acuity_n": 181,
+          "high_acuity_sensitivity": 0.8343,
+          "recall_by_esi": {
+            "1": 0.5,
+            "2": 0.816,
+            "3": 0.0,
+            "4": 0.9753,
+            "5": 0.0
+          },
+          "small_sample": false
+        },
+        "geriatric (65+y)": {
+          "n": 464,
+          "accuracy": 0.4677,
+          "macro_f1": 0.3949,
+          "qwk": 0.5637,
+          "under_triage": 0.4246,
+          "severe_under_triage": 0.0409,
+          "over_triage": 0.1078,
+          "high_acuity_n": 106,
+          "high_acuity_sensitivity": 0.8208,
+          "recall_by_esi": {
+            "1": 0.6667,
+            "2": 0.8085,
+            "3": 0.0,
+            "4": 0.9568,
+            "5": 0.0
+          },
+          "small_sample": false
+        },
+        "very old (85+y)": {
+          "n": 90,
+          "accuracy": 0.4,
+          "macro_f1": 0.3703,
+          "qwk": 0.405,
+          "under_triage": 0.4778,
+          "severe_under_triage": 0.0556,
+          "over_triage": 0.1222,
+          "high_acuity_n": 17,
+          "high_acuity_sensitivity": 0.7059,
+          "recall_by_esi": {
+            "1": 1.0,
+            "2": 0.6667,
+            "3": 0.0,
+            "4": 0.96,
+            "5": 0.0
+          },
+          "small_sample": false
+        },
+        "critical vitals missing": {
+          "n": 747,
+          "accuracy": 0.5033,
+          "macro_f1": 0.3169,
+          "qwk": 0.4245,
+          "under_triage": 0.3708,
+          "severe_under_triage": 0.0817,
+          "over_triage": 0.1258,
+          "high_acuity_n": 169,
+          "high_acuity_sensitivity": 0.6391,
+          "recall_by_esi": {
+            "1": 0.3636,
+            "2": 0.6329,
+            "3": 0.0,
+            "4": 0.9645,
+            "5": 0.0
+          },
+          "small_sample": false
+        },
+        "all critical vitals present": {
+          "n": 853,
+          "accuracy": 0.4865,
+          "macro_f1": 0.3703,
+          "qwk": 0.5357,
+          "under_triage": 0.3705,
+          "severe_under_triage": 0.027,
+          "over_triage": 0.143,
+          "high_acuity_n": 184,
+          "high_acuity_sensitivity": 0.875,
+          "recall_by_esi": {
+            "1": 0.5769,
+            "2": 0.8354,
+            "3": 0.0,
+            "4": 0.9404,
+            "5": 0.0
+          },
+          "small_sample": false
+        }
+      }
+    },
+    "logreg": {
+      "overall": {
+        "n": 1600,
+        "accuracy": 0.625,
+        "macro_f1": 0.5893,
+        "qwk": 0.5017,
+        "under_triage": 0.1894,
+        "severe_under_triage": 0.0775,
+        "over_triage": 0.1856,
+        "high_acuity_n": 353,
+        "high_acuity_sensitivity": 0.5949,
+        "recall_by_esi": {
+          "1": 0.5135,
+          "2": 0.5411,
+          "3": 0.655,
+          "4": 0.5838,
+          "5": 0.8563
+        },
+        "nll": 0.9386,
+        "brier": 0.5103,
+        "ece": 0.0536
+      },
+      "subgroups": {
+        "infant (<1y)": {
+          "n": 18,
+          "accuracy": 0.7222,
+          "macro_f1": 0.456,
+          "qwk": 0.8249,
+          "under_triage": 0.2222,
+          "severe_under_triage": 0.0,
+          "over_triage": 0.0556,
+          "high_acuity_n": 2,
+          "high_acuity_sensitivity": 1.0,
+          "recall_by_esi": {
+            "1": 0.0,
+            "2": null,
+            "3": 0.3333,
+            "4": 0.9167,
+            "5": 1.0
+          },
+          "nll": 0.9064,
+          "brier": 0.4816,
+          "ece": 0.2026,
+          "small_sample": true
+        },
+        "pediatric (<18y)": {
+          "n": 338,
+          "accuracy": 0.6154,
+          "macro_f1": 0.5062,
+          "qwk": 0.4725,
+          "under_triage": 0.2278,
+          "severe_under_triage": 0.0947,
+          "over_triage": 0.1568,
+          "high_acuity_n": 66,
+          "high_acuity_sensitivity": 0.4697,
+          "recall_by_esi": {
+            "1": 0.1429,
+            "2": 0.3729,
+            "3": 0.5287,
+            "4": 0.7379,
+            "5": 0.8
+          },
+          "nll": 0.9804,
+          "brier": 0.5226,
+          "ece": 0.0919,
+          "small_sample": false
+        },
+        "adult (18-64y)": {
+          "n": 798,
+          "accuracy": 0.6278,
+          "macro_f1": 0.6144,
+          "qwk": 0.5228,
+          "under_triage": 0.1805,
+          "severe_under_triage": 0.0652,
+          "over_triage": 0.1917,
+          "high_acuity_n": 181,
+          "high_acuity_sensitivity": 0.6298,
+          "recall_by_esi": {
+            "1": 0.7222,
+            "2": 0.5706,
+            "3": 0.6748,
+            "4": 0.5477,
+            "5": 0.8409
+          },
+          "nll": 0.9231,
+          "brier": 0.5057,
+          "ece": 0.0575,
+          "small_sample": false
+        },
+        "geriatric (65+y)": {
+          "n": 464,
+          "accuracy": 0.6272,
+          "macro_f1": 0.5809,
+          "qwk": 0.4666,
+          "under_triage": 0.1767,
+          "severe_under_triage": 0.0862,
+          "over_triage": 0.1961,
+          "high_acuity_n": 106,
+          "high_acuity_sensitivity": 0.6132,
+          "recall_by_esi": {
+            "1": 0.4167,
+            "2": 0.5957,
+            "3": 0.6889,
+            "4": 0.4964,
+            "5": 0.9487
+          },
+          "nll": 0.9348,
+          "brier": 0.5092,
+          "ece": 0.0504,
+          "small_sample": false
+        },
+        "very old (85+y)": {
+          "n": 90,
+          "accuracy": 0.6444,
+          "macro_f1": 0.6417,
+          "qwk": 0.5925,
+          "under_triage": 0.1111,
+          "severe_under_triage": 0.0556,
+          "over_triage": 0.2444,
+          "high_acuity_n": 17,
+          "high_acuity_sensitivity": 0.6471,
+          "recall_by_esi": {
+            "1": 1.0,
+            "2": 0.6,
+            "3": 0.6667,
+            "4": 0.48,
+            "5": 1.0
+          },
+          "nll": 0.8731,
+          "brier": 0.4791,
+          "ece": 0.1201,
+          "small_sample": false
+        },
+        "critical vitals missing": {
+          "n": 747,
+          "accuracy": 0.6091,
+          "macro_f1": 0.57,
+          "qwk": 0.4929,
+          "under_triage": 0.1888,
+          "severe_under_triage": 0.0723,
+          "over_triage": 0.2021,
+          "high_acuity_n": 169,
+          "high_acuity_sensitivity": 0.5444,
+          "recall_by_esi": {
+            "1": 0.4545,
+            "2": 0.5127,
+            "3": 0.6787,
+            "4": 0.5709,
+            "5": 0.7733
+          },
+          "nll": 0.9506,
+          "brier": 0.5181,
+          "ece": 0.065,
+          "small_sample": false
+        },
+        "all critical vitals present": {
+          "n": 853,
+          "accuracy": 0.6389,
+          "macro_f1": 0.6033,
+          "qwk": 0.5085,
+          "under_triage": 0.1899,
+          "severe_under_triage": 0.0821,
+          "over_triage": 0.1712,
+          "high_acuity_n": 184,
+          "high_acuity_sensitivity": 0.6413,
+          "recall_by_esi": {
+            "1": 0.5385,
+            "2": 0.5696,
+            "3": 0.637,
+            "4": 0.5965,
+            "5": 0.9239
+          },
+          "nll": 0.9281,
+          "brier": 0.5034,
+          "ece": 0.058,
+          "small_sample": false
+        }
+      }
+    },
+    "xgb_raw": {
+      "overall": {
+        "n": 1600,
+        "accuracy": 0.9031,
+        "macro_f1": 0.8836,
+        "qwk": 0.8603,
+        "under_triage": 0.0875,
+        "severe_under_triage": 0.0338,
+        "over_triage": 0.0094,
+        "high_acuity_n": 353,
+        "high_acuity_sensitivity": 0.8385,
+        "recall_by_esi": {
+          "1": 0.7838,
+          "2": 0.8386,
+          "3": 0.8869,
+          "4": 0.94,
+          "5": 0.976
+        },
+        "nll": 0.2845,
+        "brier": 0.143,
+        "ece": 0.0302
+      }
+    },
+    "xgb_calibrated": {
+      "overall": {
+        "n": 1600,
+        "accuracy": 0.9031,
+        "macro_f1": 0.8836,
+        "qwk": 0.8603,
+        "under_triage": 0.0875,
+        "severe_under_triage": 0.0338,
+        "over_triage": 0.0094,
+        "high_acuity_n": 353,
+        "high_acuity_sensitivity": 0.8385,
+        "recall_by_esi": {
+          "1": 0.7838,
+          "2": 0.8386,
+          "3": 0.8869,
+          "4": 0.94,
+          "5": 0.976
+        },
+        "nll": 0.2798,
+        "brier": 0.1421,
+        "ece": 0.0145
+      },
+      "temperature": 0.909,
+      "reliability_before": [
+        {
+          "bin": "0.2-0.3",
+          "n": 1,
+          "mean_confidence": 0.2985,
+          "accuracy": 0.0
+        },
+        {
+          "bin": "0.3-0.4",
+          "n": 3,
+          "mean_confidence": 0.367,
+          "accuracy": 0.0
+        },
+        {
+          "bin": "0.4-0.5",
+          "n": 35,
+          "mean_confidence": 0.4687,
+          "accuracy": 0.3429
+        },
+        {
+          "bin": "0.5-0.6",
+          "n": 62,
+          "mean_confidence": 0.5486,
+          "accuracy": 0.5
+        },
+        {
+          "bin": "0.6-0.7",
+          "n": 103,
+          "mean_confidence": 0.6559,
+          "accuracy": 0.6893
+        },
+        {
+          "bin": "0.7-0.8",
+          "n": 127,
+          "mean_confidence": 0.7538,
+          "accuracy": 0.8583
+        },
+        {
+          "bin": "0.8-0.9",
+          "n": 236,
+          "mean_confidence": 0.8576,
+          "accuracy": 0.8771
+        },
+        {
+          "bin": "0.9-1.0",
+          "n": 1033,
+          "mean_confidence": 0.965,
+          "accuracy": 0.9826
+        }
+      ],
+      "reliability_after": [
+        {
+          "bin": "0.3-0.4",
+          "n": 4,
+          "mean_confidence": 0.36,
+          "accuracy": 0.0
+        },
+        {
+          "bin": "0.4-0.5",
+          "n": 21,
+          "mean_confidence": 0.4653,
+          "accuracy": 0.2381
+        },
+        {
+          "bin": "0.5-0.6",
+          "n": 63,
+          "mean_confidence": 0.5454,
+          "accuracy": 0.5238
+        },
+        {
+          "bin": "0.6-0.7",
+          "n": 80,
+          "mean_confidence": 0.6552,
+          "accuracy": 0.6375
+        },
+        {
+          "bin": "0.7-0.8",
+          "n": 116,
+          "mean_confidence": 0.7514,
+          "accuracy": 0.8017
+        },
+        {
+          "bin": "0.8-0.9",
+          "n": 203,
+          "mean_confidence": 0.8574,
+          "accuracy": 0.8571
+        },
+        {
+          "bin": "0.9-1.0",
+          "n": 1113,
+          "mean_confidence": 0.9709,
+          "accuracy": 0.9784
+        }
+      ]
+    },
+    "xgb_rules": {
+      "overall": {
+        "n": 1600,
+        "accuracy": 0.8694,
+        "macro_f1": 0.7999,
+        "qwk": 0.7441,
+        "under_triage": 0.085,
+        "severe_under_triage": 0.0312,
+        "over_triage": 0.0456,
+        "high_acuity_n": 353,
+        "high_acuity_sensitivity": 0.847,
+        "recall_by_esi": {
+          "1": 0.8108,
+          "2": 0.8228,
+          "3": 0.8596,
+          "4": 0.8977,
+          "5": 0.9042
+        },
+        "nll": 0.2798,
+        "brier": 0.1421,
+        "ece": 0.0145
+      },
+      "subgroups": {
+        "infant (<1y)": {
+          "n": 18,
+          "accuracy": 0.7222,
+          "macro_f1": 0.6089,
+          "qwk": 0.4848,
+          "under_triage": 0.0,
+          "severe_under_triage": 0.0,
+          "over_triage": 0.2778,
+          "high_acuity_n": 2,
+          "high_acuity_sensitivity": 1.0,
+          "recall_by_esi": {
+            "1": 1.0,
+            "2": null,
+            "3": 0.6667,
+            "4": 0.6667,
+            "5": 1.0
+          },
+          "nll": 0.1148,
+          "brier": 0.0373,
+          "ece": 0.1021,
+          "small_sample": true
+        },
+        "pediatric (<18y)": {
+          "n": 338,
+          "accuracy": 0.8136,
+          "macro_f1": 0.7106,
+          "qwk": 0.4926,
+          "under_triage": 0.071,
+          "severe_under_triage": 0.0325,
+          "over_triage": 0.1154,
+          "high_acuity_n": 66,
+          "high_acuity_sensitivity": 0.8182,
+          "recall_by_esi": {
+            "1": 0.5714,
+            "2": 0.7458,
+            "3": 0.8276,
+            "4": 0.8759,
+            "5": 0.7
+          },
+          "nll": 0.2809,
+          "brier": 0.14,
+          "ece": 0.0272,
+          "small_sample": false
+        },
+        "adult (18-64y)": {
+          "n": 798,
+          "accuracy": 0.8935,
+          "macro_f1": 0.8621,
+          "qwk": 0.8512,
+          "under_triage": 0.084,
+          "severe_under_triage": 0.0251,
+          "over_triage": 0.0226,
+          "high_acuity_n": 181,
+          "high_acuity_sensitivity": 0.8674,
+          "recall_by_esi": {
+            "1": 0.8333,
+            "2": 0.8528,
+            "3": 0.8902,
+            "4": 0.9011,
+            "5": 0.9659
+          },
+          "nll": 0.2747,
+          "brier": 0.1367,
+          "ece": 0.0172,
+          "small_sample": false
+        },
+        "geriatric (65+y)": {
+          "n": 464,
+          "accuracy": 0.8685,
+          "macro_f1": 0.833,
+          "qwk": 0.7749,
+          "under_triage": 0.097,
+          "severe_under_triage": 0.0409,
+          "over_triage": 0.0345,
+          "high_acuity_n": 106,
+          "high_acuity_sensitivity": 0.8302,
+          "recall_by_esi": {
+            "1": 0.9167,
+            "2": 0.8191,
+            "3": 0.8333,
+            "4": 0.9137,
+            "5": 0.9744
+          },
+          "nll": 0.2875,
+          "brier": 0.153,
+          "ece": 0.0333,
+          "small_sample": false
+        },
+        "very old (85+y)": {
+          "n": 90,
+          "accuracy": 0.8556,
+          "macro_f1": 0.7923,
+          "qwk": 0.66,
+          "under_triage": 0.1,
+          "severe_under_triage": 0.0556,
+          "over_triage": 0.0444,
+          "high_acuity_n": 17,
+          "high_acuity_sensitivity": 0.7647,
+          "recall_by_esi": {
+            "1": 1.0,
+            "2": 0.7333,
+            "3": 0.8462,
+            "4": 0.92,
+            "5": 0.8889
+          },
+          "nll": 0.2781,
+          "brier": 0.1464,
+          "ece": 0.0795,
+          "small_sample": false
+        },
+        "critical vitals missing": {
+          "n": 747,
+          "accuracy": 0.826,
+          "macro_f1": 0.723,
+          "qwk": 0.6607,
+          "under_triage": 0.1325,
+          "severe_under_triage": 0.0576,
+          "over_triage": 0.0415,
+          "high_acuity_n": 169,
+          "high_acuity_sensitivity": 0.6923,
+          "recall_by_esi": {
+            "1": 0.5455,
+            "2": 0.6899,
+            "3": 0.81,
+            "4": 0.9043,
+            "5": 0.9067
+          },
+          "nll": 0.4418,
+          "brier": 0.2251,
+          "ece": 0.029,
+          "small_sample": false
+        },
+        "all critical vitals present": {
+          "n": 853,
+          "accuracy": 0.9074,
+          "macro_f1": 0.8515,
+          "qwk": 0.8104,
+          "under_triage": 0.0434,
+          "severe_under_triage": 0.0082,
+          "over_triage": 0.0492,
+          "high_acuity_n": 184,
+          "high_acuity_sensitivity": 0.9891,
+          "recall_by_esi": {
+            "1": 0.9231,
+            "2": 0.9557,
+            "3": 0.8973,
+            "4": 0.8912,
+            "5": 0.9022
+          },
+          "nll": 0.1378,
+          "brier": 0.0695,
+          "ece": 0.0273,
+          "small_sample": false
+        }
+      },
+      "ci95": {
+        "macro_f1": [
+          0.7724,
+          0.8258
+        ],
+        "high_acuity_sensitivity": [
+          0.8108,
+          0.8845
+        ]
+      }
+    }
+  },
+  "test_set": {
+    "n_evaluations": 1,
+    "run_ids": [
+      "20261115-140225-synthetic-rules-d27139-v3"
+    ]
+  },
+  "external": null,
+  "importance": [
+    [
+      "pain_score",
+      0.6044
+    ],
+    [
+      "oxygen_saturation",
+      0.5694
+    ],
+    [
+      "systolic_bp",
+      0.4758
+    ],
+    [
+      "heart_rate",
+      0.4728
+    ],
+    [
+      "has_prior_history",
+      0.3901
+    ],
+    [
+      "respiratory_rate",
+      0.2071
+    ],
+    [
+      "age_years",
+      0.1921
+    ],
+    [
+      "temperature_celsius",
+      0.1859
+    ],
+    [
+      "diastolic_bp",
+      0.0557
+    ],
+    [
+      "heart_rate_missing",
+      0.0045
+    ],
+    [
+      "pain_score_missing",
+      0.0017
+    ],
+    [
+      "respiratory_rate_missing",
+      0.0012
+    ],
+    [
+      "systolic_bp_missing",
+      0.001
+    ],
+    [
+      "oxygen_saturation_missing",
+      0.0007
+    ],
+    [
+      "temperature_celsius_missing",
+      0.0006
+    ]
+  ],
+  "parity": {
+    "n": 200,
+    "max_abs_prob_diff": 3.669748593337907e-07,
+    "esi_mismatches": 0
+  },
+  "limitations": [
+    "SYNTHETIC LABELS: generated by if/else rules on the same features, so the model mostly re-learns that recipe and every metric measures agreement with the recipe, not with clinicians. Plumbing and demo use only.",
+    "Calibration measures agreement with the label source, not clinical truth.",
+    "ESI labels are nurse judgements at triage and are themselves noisy (inter-rater agreement is moderate).",
+    "has_prior_history is 'earlier ED stay in this dataset' in training but 'history documents on file' in production.",
+    "No prospective or multi-site validation. Not a medical device. Deterministic safety rules always apply on top."
+  ],
+  "tracker_backend": "mlflow",
+  "promoted": {
+    "channel": "demo",
+    "at": "2026-11-15T14:03:07.493670+00:00",
+    "signoff": null,
+    "gate": {
+      "channel": "demo",
+      "passed": true,
+      "checks": [
+        {
+          "group": "channel",
+          "name": "label source allowed",
+          "status": "pass",
+          "detail": "'synthetic-rules' for the 'demo' channel (allowed: ['synthetic-rules', 'ktas-korea', 'mimic-iv-ed'])",
+          "blocking": true
+        },
+        {
+          "group": "parity",
+          "name": "ONNX vs joblib",
+          "status": "pass",
+          "detail": "max |dp|=3.67e-07 over 200 vectors, 0 ESI mismatches",
+          "blocking": true
+        },
+        {
+          "group": "golden",
+          "name": "golden exact-match",
+          "status": "pass",
+          "detail": "0.76 (16/21) vs committed baseline 0.76",
+          "blocking": true
+        },
+        {
+          "group": "golden",
+          "name": "no golden under-triage",
+          "status": "pass",
+          "detail": "0 critical scenario(s) under-triaged",
+          "blocking": true
+        },
+        {
+          "group": "absolute",
+          "name": "high-acuity sensitivity",
+          "status": "fail",
+          "detail": "0.8470 (>= 0.85) on 353 ESI 1-2 patients",
+          "blocking": false
+        },
+        {
+          "group": "absolute",
+          "name": "severe under-triage",
+          "status": "fail",
+          "detail": "0.0312 (<= 0.03)",
+          "blocking": false
+        },
+        {
+          "group": "calibration",
+          "name": "ECE after calibration",
+          "status": "pass",
+          "detail": "0.0145 (<= 0.08)",
+          "blocking": false
+        },
+        {
+          "group": "subgroups",
+          "name": "pediatric (<18y)",
+          "status": "pass",
+          "detail": "high-acuity sensitivity 0.8182 vs overall 0.8470 (gap +0.029, n=338)",
+          "blocking": false
+        },
+        {
+          "group": "subgroups",
+          "name": "geriatric (65+y)",
+          "status": "pass",
+          "detail": "high-acuity sensitivity 0.8302 vs overall 0.8470 (gap +0.017, n=464)",
+          "blocking": false
+        },
+        {
+          "group": "baselines",
+          "name": "not worse than rules-only (high-acuity)",
+          "status": "pass",
+          "detail": "shipped combo 0.8470 vs rules-only 0.7620",
+          "blocking": true
+        },
+        {
+          "group": "baselines",
+          "name": "beats logistic regression (macro-F1)",
+          "status": "pass",
+          "detail": "0.7999 vs logistic 0.5893",
+          "blocking": true
+        },
+        {
+          "group": "regression",
+          "name": "vs shipped model",
+          "status": "skip",
+          "detail": "no shipped model card yet",
+          "blocking": true
+        }
+      ]
+    }
+  }
+}

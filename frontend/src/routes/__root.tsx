@@ -127,25 +127,39 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 import { TriageProvider } from "../lib/triage-context";
+import { AuthProvider, useAuth } from "../lib/auth";
+import { LoginScreen } from "../components/LoginScreen";
 import { AddPatientModal } from "../components/AddPatientModal";
 // Phase 4: Import the new modals
 import { UpdateVitalsModal } from "../components/UpdateVitalsModal";
 import { DispositionModal } from "../components/DispositionModal";
+
+/** Nothing patient-related is mounted (or fetched) until someone has signed in. */
+function AuthGate() {
+  const { user, ready } = useAuth();
+  if (!ready) return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
+  if (!user) return <LoginScreen />;
+  return (
+    <TriageProvider>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <Outlet />
+
+      {/* Modals mounted globally */}
+      <AddPatientModal />
+      <UpdateVitalsModal />
+      <DispositionModal />
+    </TriageProvider>
+  );
+}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TriageProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        
-        {/* Modals mounted globally */}
-        <AddPatientModal />
-        <UpdateVitalsModal />
-        <DispositionModal />
-      </TriageProvider>
+      <AuthProvider>
+        <AuthGate />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

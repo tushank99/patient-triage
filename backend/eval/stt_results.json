@@ -1,0 +1,130 @@
+{
+  "voices": [
+    "Microsoft David Desktop",
+    "Microsoft Hazel Desktop",
+    "Microsoft Zira Desktop"
+  ],
+  "n_sentences": 16,
+  "results": {
+    "tiny.en | plain | clean": {
+      "wer": 0.12307692307692308,
+      "medical_term_recall": 0.7142857142857143,
+      "symptom_f1": 0.875,
+      "duration_acc": 0.9375,
+      "pain_acc": 0.9375,
+      "error_catch_rate": 0.6,
+      "false_review_rate": 0.5,
+      "rtf": 0.22358982546002226,
+      "examples": [
+        "I have had crushing chest pain for 2 hours and I take a bazab and for atrial fibrillation.",
+        "She fell at home this morning and hit her head, she is on warfarin.",
+        "Short of breath for three days. My inhaler with albuterol is not helping."
+      ]
+    },
+    "tiny.en | plain | noise 10 dB SNR": {
+      "wer": 0.1794871794871795,
+      "medical_term_recall": 0.6785714285714286,
+      "symptom_f1": 0.7291666666666666,
+      "duration_acc": 0.9375,
+      "pain_acc": 1.0,
+      "error_catch_rate": 0.9166666666666666,
+      "false_review_rate": 1.0,
+      "rtf": 0.23095533386852635,
+      "examples": [
+        "I have had crushing chest pain for two hours and I take a pazab and for atrial fibrillation.",
+        "She fell at home this morning and hit her head. She is on water and...",
+        "Short of breath for three days. My inhaler with albuterol is not helping."
+      ]
+    },
+    "tiny.en | medical vocab | clean": {
+      "wer": 0.08205128205128205,
+      "medical_term_recall": 1.0,
+      "symptom_f1": 0.875,
+      "duration_acc": 0.9375,
+      "pain_acc": 1.0,
+      "error_catch_rate": 0.7142857142857143,
+      "false_review_rate": 0.6666666666666666,
+      "rtf": 0.5255075756981954,
+      "examples": [
+        "I have had crushing chest pain for two hours and I take apixaban for atrial fibrillation. Thank you very much.",
+        "She fell at home this morning and hit her head, she is on warfarin.",
+        "Short of breath for three days. My inhaler with albuterol is not helping."
+      ]
+    },
+    "tiny.en | medical vocab | noise 10 dB SNR": {
+      "wer": 0.1641025641025641,
+      "medical_term_recall": 0.9285714285714286,
+      "symptom_f1": 0.8333333333333333,
+      "duration_acc": 0.9375,
+      "pain_acc": 0.9375,
+      "error_catch_rate": 1.0,
+      "false_review_rate": 1.0,
+      "rtf": 0.51132731076206,
+      "examples": [
+        "I have had crushing chest pain for two hours and I take apixaban for atrial fibrillation. You",
+        "She fell at home this morning and hit her head. She is on warfarin",
+        "shortness of breath for three days. My inhaler with albuterol is not helping. You"
+      ]
+    },
+    "base.en | plain | clean": {
+      "wer": 0.10256410256410256,
+      "medical_term_recall": 0.8214285714285714,
+      "symptom_f1": 0.875,
+      "duration_acc": 0.9375,
+      "pain_acc": 1.0,
+      "error_catch_rate": 0.5,
+      "false_review_rate": 0.5,
+      "rtf": 0.40459073486276553,
+      "examples": [
+        "I have had crushing chest pain for two hours and I take a pizaban for atrial fibrillation.",
+        "She fell at home this morning and hit her head, she is on Warfarin.",
+        "Short of breath for three days, my inhaler with albuterol is not helping."
+      ]
+    },
+    "base.en | plain | noise 10 dB SNR": {
+      "wer": 0.14871794871794872,
+      "medical_term_recall": 0.75,
+      "symptom_f1": 0.7291666666666666,
+      "duration_acc": 0.9375,
+      "pain_acc": 1.0,
+      "error_catch_rate": 0.8333333333333334,
+      "false_review_rate": 0.5,
+      "rtf": 0.2862835491826147,
+      "examples": [
+        "I have had crushing chest pain for 2 hours and I take a pizaban for atrial fibrillation.",
+        "She fell at home this morning and hit her head, she is on war for him.",
+        "Short of breath for three days, my inhaler with albuterol is not helping."
+      ]
+    },
+    "base.en | medical vocab | clean": {
+      "wer": 0.26153846153846155,
+      "medical_term_recall": 0.9642857142857143,
+      "symptom_f1": 0.875,
+      "duration_acc": 0.9375,
+      "pain_acc": 0.9375,
+      "error_catch_rate": 0.9230769230769231,
+      "false_review_rate": 1.0,
+      "rtf": 1.3448094889020261,
+      "examples": [
+        "I have had crushing chest pain for two hours and I take apixaban atrial fibrillation. . . .",
+        "She fell at home this morning and hit her head, she is on warfarin.",
+        "Short of breath for three days, my inhaler with albuterol is not helping. Thank you for watching."
+      ]
+    },
+    "base.en | medical vocab | noise 10 dB SNR": {
+      "wer": 0.1794871794871795,
+      "medical_term_recall": 0.9285714285714286,
+      "symptom_f1": 0.7916666666666666,
+      "duration_acc": 0.9375,
+      "pain_acc": 1.0,
+      "error_catch_rate": 1.0,
+      "false_review_rate": 1.0,
+      "rtf": 0.9261468975326806,
+      "examples": [
+        "I have had crushing chest pain for two hours and I take apixaban for atrial fibrillation. You",
+        "She fell at home this morning and hit her head, she is on warfarin.",
+        "Short of breath for three days, inhaler with albuterol is not helping."
+      ]
+    }
+  }
+}

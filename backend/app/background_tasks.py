@@ -1,60 +1,53 @@
 import asyncio
+import logging
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
-from backend.app.database import SessionLocal
-from backend.app.models import Visit
 
-# Safe Wait Times by ESI Level (in seconds for the hackathon demo)
-# In reality, ESI 2 is 10 mins, ESI 3 is 60 mins. 
-# We use short times (e.g., 60 seconds) so the judges can actually see the deterioration trigger live.
-ESI_WAIT_THRESHOLDS = {
-    1: 0,       # Immediate
-    2: 30,      # 30 seconds for demo
-    3: 60,      # 60 seconds for demo
-    4: 120,
-    5: 240
-}
+from backend.app.config import settings
+from backend.app.database import SessionLocal
+from backend.app.models import AuditLog, Visit, as_utc
+
+logger = logging.getLogger(__name__)
+
+# Maximum safe wait by ESI level, in MINUTES (matches the dashboard's deterioration rule).
+# MONITOR_SPEEDUP > 1 shrinks them so a demo shows alerts quickly.
+ESI_WAIT_MINUTES = {1: 5, 2: 15, 3: 60, 4: 120, 5: 240}
+
+
+def flag_overdue_visits(now: datetime | None = None) -> int:
+    """Marks waiting visits that exceeded their ESI wait limit as NEEDS_REASSESSMENT. Returns how many."""
+    now = now or datetime.now(timezone.utc)
+    db = SessionLocal()
+    flagged = 0
+    try:
+        for visit in db.query(Visit).filter(Visit.status == "WAITING").all():
+            esi = visit.final_esi_score
+            if not esi:
+                continue
+            limit = ESI_WAIT_MINUTES.get(esi, 60) * 60 / max(settings.monitor_speedup, 0.01)
+            started = as_utc(visit.last_assessed_at) or as_utc(visit.arrival_time)
+            waited = (now - started).total_seconds()  # the clock restarts at every reassessment
+            if waited > limit:
+                visit.status = "NEEDS_REASSESSMENT"
+                db.add(AuditLog(
+                    visit_id=visit.id, clinician_id="SYSTEM", action="DETERIORATION_FLAGGED", initial_ai_esi=visit.ai_esi_score,
+                    assigned_esi=esi, override_reason=f"Waited {waited / 60:.0f} min (limit {limit / 60:.0f} min for ESI {esi}).",
+                ))
+                flagged += 1
+        if flagged:
+            db.commit()
+    finally:
+        db.close()
+    return flagged
+
 
 async def deterioration_monitor():
-    """
-    Loops constantly in the background. If a patient waits longer than 
-    their ESI threshold, it flags them for re-assessment.
-    """
-    print("Deterioration Monitor Started...")
+    """Background loop: flags patients who have waited past their ESI limit for reassessment."""
+    logger.info("Deterioration monitor started")
     while True:
         try:
-            db: Session = SessionLocal()
-            # Find everyone currently waiting
-            waiting_visits = db.query(Visit).filter(Visit.status == "WAITING").all()
-            
-            now = datetime.now(timezone.utc)
-            updates_made = False
-            
-            for visit in waiting_visits:
-                esi = visit.final_esi_score
-                if not esi:  # type: ignore
-                    continue
-                    
-                threshold = ESI_WAIT_THRESHOLDS.get(esi, 3600)  # type: ignore
-                
-                arrival = visit.arrival_time
-                if arrival.tzinfo is None:
-                    # If SQLite stripped the timezone, put it back as UTC
-                    arrival = arrival.replace(tzinfo=timezone.utc)
-                
-                wait_time_seconds = (now - arrival).total_seconds()  # type: ignore
-                
-                # If they exceeded their safe wait time
-                if wait_time_seconds > threshold:
-                    visit.status = "NEEDS_REASSESSMENT"  # type: ignore
-                    updates_made = True
-            
-            if updates_made:
-                db.commit()
-                print("⚠️ Deterioration Monitor: Flagged patients for reassessment!")
-                
-            db.close()
+            n = await asyncio.to_thread(flag_overdue_visits)
+            if n:
+                logger.warning("Deterioration monitor flagged %d patient(s) for reassessment", n)
         except Exception as e:
-            print(f"Monitor error: {e}")
-            
-        await asyncio.sleep(5)  # Check every 5 seconds for the fast-paced demo
+            logger.error("Monitor error: %s", e)
+        await asyncio.sleep(5)

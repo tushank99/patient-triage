@@ -1,0 +1,27 @@
+{
+  "models": {
+    "Xenova/ms-marco-MiniLM-L-6-v2": {
+      "fastembed": "0.9.1",
+      "files": {
+        "models--Xenova--ms-marco-MiniLM-L-6-v2/files_metadata.json": "f9ba016116792d2d8bd0ad22f031ad601aaf97a9ac68a42e6ad5d69f87a5e609",
+        "models--Xenova--ms-marco-MiniLM-L-6-v2/snapshots/config.json": "d827779a72d27ae68cf878a6fc2e954542663fe21ca515d9f4783fc96be2d37e",
+        "models--Xenova--ms-marco-MiniLM-L-6-v2/snapshots/onnx/model.onnx": "c623d0bcb99f4622beb413eaef00cfbe5db20df9f1dd982da4b4f26022881870",
+        "models--Xenova--ms-marco-MiniLM-L-6-v2/snapshots/special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+        "models--Xenova--ms-marco-MiniLM-L-6-v2/snapshots/tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+        "models--Xenova--ms-marco-MiniLM-L-6-v2/snapshots/tokenizer_config.json": "0b29c7bfc889e53b36d9dd3e686dd4300f6525110eaa98c76a5dafceb2029f53",
+        "models--Xenova--ms-marco-MiniLM-L-6-v2/trees/a09144355adeed5f58c8ed011d209bf8ee5a1fec.json": "ae19cd984debcd2179e15f2eda48e9f4c43f078fa4a3463a0c5fcc7089f598c7"
+      }
+    },
+    "minishlab/potion-retrieval-32M": {
+      "fastembed": "0.9.1",
+      "files": {
+        "models--minishlab--potion-retrieval-32M/files_metadata.json": "a90b0ca7852a60418fe29b7dbbf9c5db43b60f145bbb1a53b49593bc14003aca",
+        "models--minishlab--potion-retrieval-32M/snapshots/config.json": "63c00d90824c832c04ec1d02b6a983fb90489bf049f29fbff15ba481b8a432ee",
+        "models--minishlab--potion-retrieval-32M/snapshots/special_tokens_map.json": "a9e8fb6f99fb0b8803f0e6942fdf4d95d6645204620b67dc3310a1024bcbac59",
+        "models--minishlab--potion-retrieval-32M/snapshots/tokenizer.json": "7d75cbc54318138807c401b0f0c9721117c628b39de8e8e0edb6cb17e0ee7d18",
+        "models--minishlab--potion-retrieval-32M/snapshots/tokenizer_config.json": "6725995e3ab3039857ff5bd99178a7cdf42863abb04449e7bb31feb1f55fe567",
+        "models--minishlab--potion-retrieval-32M/trees/6fc8051fab2a1e0ee76689cf08c853792ac285e7.json": "92a1330a0a1bcff1231c7ef2708b5fe338604a9415fde57bb47b9c042a838469"
+      }
+    }
+  }
+}

@@ -1,134 +1,215 @@
 /* eslint-disable prettier/prettier */
 /**
- * Edge AI Fallback Engine — runs the same XGBoost model locally via ONNX + WebAssembly.
+ * Edge fallback: the same XGBoost model, run locally via ONNX + WebAssembly, used ONLY when the
+ * backend is unreachable or returns 5xx (see shouldUseEdgeFallback in api.ts).
  *
- * FEATURE ORDER SPEC (must match backend/app/services/assessment_engine.py):
- *   [age, hr, bpSys, bpDia, spo2, temp, pain, has_mrn]
+ * Everything model-specific comes from the bundle `python -m backend.training.promote` copies here:
+ *   /models/triage_model.onnx       the model
+ *   /models/triage_model.meta.json  feature order, derived features, class_to_esi, calibration temperature
+ *   /models/safety_rules.json       the SAME deterministic rules the backend applies
  *
- * Defaults for missing values use the same clinical defaults as the backend:
- *   age=35, hr=75, bpSys=120, bpDia=80, spo2=98, temp=37.0, pain=0, has_mrn=0
+ * Missing vitals are sent as NaN plus explicit *_missing indicators, never imputed as normal. The maths that must
+ * equal the server's lives in edge-math.ts and is checked in CI by scripts/verify-onnx-parity.mjs.
  */
-import { EsiLevel } from "./triage-context";
 import * as ort from "onnxruntime-web";
+import type { Badge, AssessmentView } from "./assessment-view";
+import { buildFeatureVector, decode, type ModelMeta } from "./edge-math";
 
-// Configure ONNX Runtime WebAssembly path
-ort.env.wasm.wasmPaths = "/";
+// The ORT runtime (.mjs + .wasm) is served from /public. Importing a /public .mjs directly is refused by the Vite dev
+// server, so the module is loaded through a Blob URL and the .wasm by absolute URL: works in dev and in production.
+let runtimeReady: Promise<void> | null = null;
+function prepareRuntime(): Promise<void> {
+  if (!runtimeReady) {
+    runtimeReady = (async () => {
+      const name = "ort-wasm-simd-threaded.jsep";
+      const res = await fetch(`/${name}.mjs`);
+      if (!res.ok) throw new Error(`Failed to load ORT runtime (${res.status})`);
+      const mjs = URL.createObjectURL(new Blob([await res.text()], { type: "text/javascript" }));
+      ort.env.wasm.wasmPaths = { mjs, wasm: new URL(`/${name}.wasm`, window.location.origin).href };
+    })().catch((e) => { runtimeReady = null; throw e; });
+  }
+  return runtimeReady;
+}
 
+const BUNDLE = "/models";
+
+interface Condition { field: string; op: string; value: unknown }
+interface SafetyRule { id: string; version: number; esi: number; reason: string; source: string; all?: Condition[]; any?: Condition[] }
+interface RuleSet { ruleset_version: string; rules: SafetyRule[] }
+
+/** Field names match the backend feature schema / VitalSigns. */
 export interface EdgeModelInput {
-  age: number | null;
-  hr: number | null;
-  bpSys: number | null;
-  bpDia: number | null;
-  spo2: number | null;
-  temp: number | null;
-  pain?: number | null;
-  hasMrn?: boolean;
+  age_years: number;
+  heart_rate?: number | null;
+  systolic_bp?: number | null;
+  diastolic_bp?: number | null;
+  respiratory_rate?: number | null;
+  oxygen_saturation?: number | null;
+  temperature_celsius?: number | null;
+  pain_score?: number | null;
+  has_prior_history?: boolean;
+  complaint?: string;
 }
 
-// Cache the ONNX session so the .onnx file is only fetched once
-let cachedSession: ort.InferenceSession | null = null;
+let bundlePromise: Promise<{ session: ort.InferenceSession; meta: ModelMeta; rules: RuleSet }> | null = null;
+let rulesPromise: Promise<RuleSet> | null = null;
 
-async function getSession(): Promise<ort.InferenceSession> {
-  if (!cachedSession) {
-    cachedSession = await ort.InferenceSession.create("/triage_model.onnx");
+/** The safety rules are plain JSON: they must keep working even when the ONNX runtime cannot load. */
+function loadRules(): Promise<RuleSet> {
+  if (!rulesPromise) {
+    rulesPromise = fetchJson<RuleSet>(`${BUNDLE}/safety_rules.json`).catch((e) => { rulesPromise = null; throw e; });
   }
-  return cachedSession;
+  return rulesPromise;
 }
 
-/**
- * Build the Float32 feature vector in the exact order the Python model was trained on.
- * Missing values are imputed with the same clinical defaults used on the backend.
- */
-function toFeatureVector(vitals: EdgeModelInput): Float32Array {
-  return Float32Array.from([
-    vitals.age ?? 35.0,
-    vitals.hr ?? 75.0,
-    vitals.bpSys ?? 120.0,
-    vitals.bpDia ?? 80.0,
-    vitals.spo2 ?? 98.0,
-    vitals.temp ?? 37.0,
-    vitals.pain ?? 0.0,
-    vitals.hasMrn ? 1.0 : 0.0,
-  ]);
+async function fetchJson<T>(path: string): Promise<T> {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Failed to load ${path} (${res.status})`);
+  return (await res.json()) as T;
 }
 
-/**
- * Return the index of the largest element (argmax).
- */
-function argmax(arr: ArrayLike<number>): number {
-  let maxIdx = 0;
-  let maxVal = -Infinity;
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] > maxVal) { maxVal = arr[i]; maxIdx = i; }
+function loadBundle() {
+  if (!bundlePromise) {
+    bundlePromise = (async () => {
+      await prepareRuntime();
+      const [meta, rules, session] = await Promise.all([
+        fetchJson<ModelMeta>(`${BUNDLE}/triage_model.meta.json`),
+        loadRules(),
+        ort.InferenceSession.create(`${BUNDLE}/triage_model.onnx`),
+      ]);
+      return { session, meta, rules };
+    })().catch((e) => {
+      bundlePromise = null; // allow a retry later
+      throw e;
+    });
   }
-  return maxIdx;
+  return bundlePromise;
 }
 
-export async function runEdgeInference(vitals: EdgeModelInput) {
-  const badges: { label: string; type: "danger" | "warning" | "success" | "default" }[] = [
-    { label: "⚡ Edge ONNX Active", type: "warning" },
-    { label: "☁️ Cloud Disconnected", type: "danger" },
-  ];
-
-  // --- Confidence penalty for missing vitals (same logic as backend) ---
-  let missingPenalty = 0;
-  if (vitals.hr === null) missingPenalty += 7;
-  if (vitals.spo2 === null) missingPenalty += 7;
-  if (vitals.bpSys === null) missingPenalty += 7;
-
-  // --- Run real ONNX inference ---
-  const session = await getSession();
-
-  const inputTensor = new ort.Tensor("float32", toFeatureVector(vitals), [1, 8]);
-
-  // Feed the tensor using the model's actual input name
-  const feeds: Record<string, ort.Tensor> = {};
-  feeds[session.inputNames[0]] = inputTensor;
-
-  const results = await session.run(feeds);
-
-  // The sklearn ONNX converter outputs: "output_label" (predicted class) and
-  // "output_probability" (per-class probabilities as a sequence of maps).
-  // We try to use probabilities first for confidence, fall back to label-only.
-  let esi: EsiLevel = 4;
-  let baseConfidence = 85;
-
-  const outputNames = session.outputNames;
-
-  // Try to extract the predicted label
-  const labelOutput = results[outputNames[0]];
-  const predictedClass = Number(labelOutput.data[0]);
-  if (predictedClass >= 1 && predictedClass <= 5) {
-    esi = predictedClass as EsiLevel;
-  }
-
-  // Try to extract probability from the second output (if available)
-  if (outputNames.length > 1) {
-    const probOutput = results[outputNames[1]];
-    if (probOutput && probOutput.data) {
-      // For XGBoost ONNX models the probabilities output is a sequence of maps.
-      // onnxruntime-web may flatten this — we try to extract the max probability.
-      const probData = probOutput.data as Float32Array;
-      if (probData.length >= 5) {
-        const maxProb = Math.max(...Array.from(probData).slice(0, 5));
-        baseConfidence = Math.round(maxProb * 100);
-      }
+function conditionHolds(inputs: Record<string, unknown>, c: Condition): boolean {
+  const actual = c.field.split(".").reduce<unknown>(
+    (cur, key) => (cur !== null && typeof cur === "object" ? (cur as Record<string, unknown>)[key] : undefined),
+    inputs,
+  );
+  if (actual === null || actual === undefined) return false; // never fire on data not collected
+  const expected = c.value;
+  switch (c.op) {
+    case "<": return (actual as number) < (expected as number);
+    case "<=": return (actual as number) <= (expected as number);
+    case ">": return (actual as number) > (expected as number);
+    case ">=": return (actual as number) >= (expected as number);
+    case "==": return actual === expected;
+    case "contains_any": {
+      const text = String(actual).toLowerCase();
+      return (expected as string[]).some((p) => text.includes(p.toLowerCase()));
     }
+    case "has_word_any": {
+      const text = String(actual).toLowerCase();
+      return (expected as string[]).some((w) =>
+        new RegExp(`\\b${w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(text),
+      );
+    }
+    default:
+      throw new Error(`Unknown rule operator ${c.op}`);
   }
+}
 
-  // Apply missing-data penalty
-  const confidence = Math.max(50, baseConfidence - missingPenalty);
+/** Same semantics as backend/app/clinical/rules_engine.py. Server-only rules (history.*) never fire here. */
+export function evaluateRules(rules: RuleSet, inputs: Record<string, unknown>): SafetyRule[] {
+  return rules.rules.filter(
+    (r) => (r.all ?? []).every((c) => conditionHolds(inputs, c)) && (!r.any || r.any.some((c) => conditionHolds(inputs, c))),
+  );
+}
 
-  const flags: string[] = [`ONNX Tensor Prediction: ESI ${esi}`];
+/** Rules-only guidance when the ONNX model cannot run: a rule-flagged patient is still escalated. */
+async function rulesOnlyAssessment(input: EdgeModelInput): Promise<AssessmentView> {
+  const rules = await loadRules();
+  const fired = evaluateRules(rules, { ...input, complaint: input.complaint ?? "" });
+  const floor = fired.length ? Math.min(...fired.map((r) => r.esi)) : null;
+  const esi = floor ?? 3;
+  const reasons = fired.filter((r) => r.esi === floor).map((r) => r.reason).join("; ");
+  return {
+    source: "edge",
+    modelNote: `safety rules ${rules.ruleset_version} only (offline model failed to load)`,
+    recommended_esi: esi,
+    confidence: { model_probability: null, data_completeness: 0, retrieval_confidence: null, retrieval_note: "Offline: no patient history available.", missing_critical: [] },
+    rationale: floor !== null
+      ? `SAFETY RULE ESCALATION to ESI ${esi} (${reasons}). Offline assessment: the local model is unavailable; rules only.`
+      : "Offline assessment: the local model is unavailable and no safety rule fired. Defaulting to ESI 3 pending manual assessment.",
+    riskFactors: fired.map((r) => r.reason),
+    badges: [{ label: "Safety rules only (offline)", type: "danger" }, { label: "Cloud AI unavailable", type: "danger" }],
+    rulesFired: fired.map(({ id, version, esi: e, reason, source }) => ({ id, version, esi: e, reason, source })),
+    history: [],
+    hasHistory: false,
+    degraded: ["backend_unreachable", "edge_model_unavailable"],
+    warnings: [],
+    reviewReasons: ["Offline guidance only: nothing was saved. Assess manually and re-submit when the connection returns."],
+    requiresConfirmation: false,
+  };
+}
 
-  // Rationale — we cannot produce fluent LLM text offline, so output rigid telemetry
-  const rationale =
-    `Cloud NLP Rationale Unavailable. Local ONNX Engine Flags: ${flags.join(", ")}.`;
+export async function runEdgeInference(input: EdgeModelInput): Promise<AssessmentView> {
+  let bundle;
+  try {
+    bundle = await loadBundle();
+  } catch (e) {
+    console.error("Edge ONNX model unavailable, falling back to safety rules only:", e);
+    return rulesOnlyAssessment(input);
+  }
+  const { session, meta, rules } = bundle;
+  const inputName = session.inputNames[0];
+  if (!inputName) throw new Error("ONNX model has no inputs");
+
+  const tensor = new ort.Tensor("float32", buildFeatureVector(meta, input as unknown as Record<string, number | boolean | null | undefined>), [1, meta.features.length]);
+  const results = await session.run({ [inputName]: tensor });
+
+  // Decode from the probabilities tensor via class_to_esi. The raw "label" output is a CLASS INDEX
+  // (0 = ESI 1); the old code read it as an ESI level, shifting every prediction by one.
+  const probOutput = results["probabilities"];
+  if (!probOutput) throw new Error("ONNX model has no 'probabilities' output");
+  const decoded = decode(meta, probOutput.data as Float32Array);  // calibration + class_to_esi, identical to the server
+  const probs = decoded.probs;
+  const best = probs.indexOf(decoded.top);
+  const modelEsi = decoded.esi;
+
+  const fired = evaluateRules(rules, { ...input, complaint: input.complaint ?? "" });
+  const floor = fired.length ? Math.min(...fired.map((r) => r.esi)) : null;
+  const finalEsi = floor !== null ? Math.min(modelEsi, floor) : modelEsi;
+
+  const vitalWeights: [number | null | undefined, number][] = [
+    [input.oxygen_saturation, 0.25], [input.heart_rate, 0.2], [input.systolic_bp, 0.2],
+    [input.respiratory_rate, 0.15], [input.temperature_celsius, 0.1], [input.pain_score, 0.1],
+  ];
+  const completeness = Math.round(vitalWeights.reduce((sum, [v, w]) => sum + (v != null ? w : 0), 0) * 1000) / 1000;
+
+  const badges: Badge[] = [
+    { label: "Edge ONNX model (offline)", type: "warning" },
+    { label: "Cloud AI unavailable", type: "danger" },
+  ];
+  const escalation = floor !== null && floor < modelEsi
+    ? `SAFETY RULE ESCALATION to ESI ${finalEsi} (${fired.filter((r) => r.esi === floor).map((r) => r.reason).join("; ")}). `
+    : "";
 
   return {
-    recommended_esi: esi,
-    confidence_score: confidence,
-    rationale,
+    source: "edge",
+    modelNote: `${meta.model_version} (offline copy) · labels: ${meta.label_source ?? "unknown"}`,
+    recommended_esi: finalEsi,
+    confidence: {
+      model_probability: probs[best] ?? null,
+      data_completeness: completeness,
+      retrieval_confidence: null,
+      retrieval_note: "Offline: no patient history available.",
+      missing_critical: [],
+    },
+    rationale: `${escalation}Offline assessment: model ${meta.model_version} suggested ESI ${modelEsi}. No history or AI narrative available offline.`,
+    riskFactors: fired.map((r) => r.reason),
     badges,
+    rulesFired: fired.map(({ id, version, esi, reason, source }) => ({ id, version, esi, reason, source })),
+    history: [],
+    hasHistory: false,
+    degraded: ["backend_unreachable"],
+    warnings: [],
+    reviewReasons: ["Offline guidance only: nothing was saved. Re-submit when the connection returns."],
+    requiresConfirmation: false,
   };
 }

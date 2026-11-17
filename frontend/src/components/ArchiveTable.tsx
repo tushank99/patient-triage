@@ -3,10 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useTriage, ESI_META, ArchivedPatient } from "../lib/triage-context";
 import { Clock, ShieldAlert, Undo2, UserX } from "lucide-react";
 import { HistoricalAuditModal } from "./HistoricalAuditModal";
+import { useAuth } from "../lib/auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 export function ArchiveTable() {
   const { archivedPatients, revertPatient, anonymizePatient } = useTriage();
+  const { can } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [now, setNow] = useState(Date.now());
   
@@ -96,7 +98,7 @@ export function ArchiveTable() {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex justify-end gap-2">
-                        {canRevert && !patient.isAnonymized ? (
+                        {canRevert && !patient.isAnonymized && can("triage:write") ? (
                           <button
                             onClick={(e) => { e.stopPropagation(); revertPatient(patient.id); }}
                             className="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 text-xs font-bold transition-colors"
@@ -109,7 +111,7 @@ export function ArchiveTable() {
                           </span>
                         )}
 
-                        {!patient.isAnonymized && (
+                        {!patient.isAnonymized && can("patient:anonymize") && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setPatientToPurge(patient.id); }}
                             className="flex items-center gap-1 px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 text-xs font-bold transition-colors"

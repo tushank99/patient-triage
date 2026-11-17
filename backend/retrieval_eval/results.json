@@ -1,0 +1,433 @@
+{
+  "benchmark_version": "1.0",
+  "n_bench_patients": 12,
+  "n_real": 18,
+  "n_synthetic_positive": 84,
+  "n_synthetic_negative": 36,
+  "embedders": {
+    "hash-v2": {
+      "vector (baseline)": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.19047619047619047,
+          "success@3": 0.3333333333333333,
+          "success@5": 0.44047619047619047,
+          "recall@5": 0.44047619047619047,
+          "mrr@10": 0.28662131519274375,
+          "ndcg@10": 0.3383248586536859
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.5555555555555556,
+          "success@3": 0.9444444444444444,
+          "mrr@10": 0.7546296296296295,
+          "ndcg@10": 0.8083321288978205
+        },
+        "fallback": {
+          "auroc": 0.46279761904761907,
+          "threshold": 0.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 1.55,
+          "p95": 3.7944999999999998
+        },
+        "signature": "vector|hash-v2|none|expand=False"
+      },
+      "vector+expansion": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.5595238095238095,
+          "success@3": 0.6785714285714286,
+          "success@5": 0.7619047619047619,
+          "recall@5": 0.7619047619047619,
+          "mrr@10": 0.629563492063492,
+          "ndcg@10": 0.6622026121974653
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.7777777777777778,
+          "success@3": 1.0,
+          "mrr@10": 0.8888888888888888,
+          "ndcg@10": 0.9144893026157711
+        },
+        "fallback": {
+          "auroc": 0.6213624338624338,
+          "threshold": 0.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 1.65,
+          "p95": 2.6815
+        },
+        "signature": "vector|hash-v2|none|expand=True"
+      },
+      "bm25": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.2857142857142857,
+          "success@3": 0.2976190476190476,
+          "success@5": 0.32142857142857145,
+          "recall@5": 0.32142857142857145,
+          "mrr@10": 0.2970238095238095,
+          "ndcg@10": 0.3029578466533261
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.5555555555555556,
+          "success@3": 0.5555555555555556,
+          "mrr@10": 0.5555555555555556,
+          "ndcg@10": 0.46958826505899076
+        },
+        "fallback": {
+          "auroc": 0.5993716931216931,
+          "threshold": -1.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 1.5350000000000001,
+          "p95": 2.4234999999999998
+        },
+        "signature": "bm25|hash-v2|none|expand=False"
+      },
+      "bm25+expansion": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.6309523809523809,
+          "success@3": 0.6666666666666666,
+          "success@5": 0.6904761904761905,
+          "recall@5": 0.6904761904761905,
+          "mrr@10": 0.6521825396825397,
+          "ndcg@10": 0.6616593913387006
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.7777777777777778,
+          "success@3": 0.7777777777777778,
+          "mrr@10": 0.7777777777777778,
+          "ndcg@10": 0.7347941325294953
+        },
+        "fallback": {
+          "auroc": 0.7665343915343915,
+          "threshold": -1.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 1.56,
+          "p95": 2.3405
+        },
+        "signature": "bm25|hash-v2|none|expand=True"
+      },
+      "hybrid": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.2619047619047619,
+          "success@3": 0.39285714285714285,
+          "success@5": 0.4880952380952381,
+          "recall@5": 0.4880952380952381,
+          "mrr@10": 0.34854497354497355,
+          "ndcg@10": 0.3964530936624301
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.5555555555555556,
+          "success@3": 0.9444444444444444,
+          "mrr@10": 0.7546296296296295,
+          "ndcg@10": 0.8083321288978205
+        },
+        "fallback": {
+          "auroc": 0.5,
+          "threshold": 0.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 1.85,
+          "p95": 2.8199999999999994
+        },
+        "signature": "hybrid|hash-v2|none|expand=False"
+      },
+      "hybrid+expansion": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.6071428571428571,
+          "success@3": 0.7023809523809523,
+          "success@5": 0.7738095238095238,
+          "recall@5": 0.7738095238095238,
+          "mrr@10": 0.6628968253968254,
+          "ndcg@10": 0.6901941322644004
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.7777777777777778,
+          "success@3": 1.0,
+          "mrr@10": 0.8888888888888888,
+          "ndcg@10": 0.9213106739858795
+        },
+        "fallback": {
+          "auroc": 0.6481481481481481,
+          "threshold": 0.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 2.065,
+          "p95": 3.3425
+        },
+        "signature": "hybrid|hash-v2|none|expand=True"
+      },
+      "hybrid+expansion+rerank": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.75,
+          "success@3": 0.7738095238095238,
+          "success@5": 0.8571428571428571,
+          "recall@5": 0.8571428571428571,
+          "mrr@10": 0.7841931216931218,
+          "ndcg@10": 0.8097176825814701
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.8888888888888888,
+          "success@3": 1.0,
+          "mrr@10": 0.9444444444444444,
+          "ndcg@10": 0.9572434218179673
+        },
+        "fallback": {
+          "auroc": 0.8458994708994709,
+          "threshold": 2.5519826580871418e-05,
+          "answerable_kept": 0.8928571428571429,
+          "unanswerable_rejected": 0.3055555555555556,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 420.22,
+          "p95": 567.904
+        },
+        "signature": "hybrid|hash-v2|fastembed-ce:Xenova/ms-marco-MiniLM-L-6-v2|expand=True"
+      }
+    },
+    "fastembed:minishlab/potion-retrieval-32M": {
+      "vector (baseline)": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.6547619047619048,
+          "success@3": 0.8333333333333334,
+          "success@5": 0.9047619047619048,
+          "recall@5": 0.9047619047619048,
+          "mrr@10": 0.7575727513227515,
+          "ndcg@10": 0.8078559055080899
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.8888888888888888,
+          "success@3": 1.0,
+          "mrr@10": 0.9444444444444444,
+          "ndcg@10": 0.9468974256389462
+        },
+        "fallback": {
+          "auroc": 0.7939814814814815,
+          "threshold": 0.1772071063518524,
+          "answerable_kept": 0.8928571428571429,
+          "unanswerable_rejected": 0.5277777777777778,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 2.36,
+          "p95": 4.835
+        },
+        "signature": "vector|fastembed:minishlab/potion-retrieval-32M|none|expand=False"
+      },
+      "vector+expansion": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.8452380952380952,
+          "success@3": 0.9404761904761905,
+          "success@5": 0.9523809523809523,
+          "recall@5": 0.9523809523809523,
+          "mrr@10": 0.8938492063492063,
+          "ndcg@10": 0.911576931745359
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.9444444444444444,
+          "success@3": 1.0,
+          "mrr@10": 0.9722222222222222,
+          "ndcg@10": 0.9785081773758587
+        },
+        "fallback": {
+          "auroc": 0.8548280423280423,
+          "threshold": 0.19386250674724576,
+          "answerable_kept": 0.8928571428571429,
+          "unanswerable_rejected": 0.4722222222222222,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 2.21,
+          "p95": 3.1515
+        },
+        "signature": "vector|fastembed:minishlab/potion-retrieval-32M|none|expand=True"
+      },
+      "bm25": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.2857142857142857,
+          "success@3": 0.2976190476190476,
+          "success@5": 0.32142857142857145,
+          "recall@5": 0.32142857142857145,
+          "mrr@10": 0.2970238095238095,
+          "ndcg@10": 0.3029578466533261
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.5555555555555556,
+          "success@3": 0.5555555555555556,
+          "mrr@10": 0.5555555555555556,
+          "ndcg@10": 0.46958826505899076
+        },
+        "fallback": {
+          "auroc": 0.5993716931216931,
+          "threshold": -1.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 2.19,
+          "p95": 3.0184999999999995
+        },
+        "signature": "bm25|fastembed:minishlab/potion-retrieval-32M|none|expand=False"
+      },
+      "bm25+expansion": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.6309523809523809,
+          "success@3": 0.6666666666666666,
+          "success@5": 0.6904761904761905,
+          "recall@5": 0.6904761904761905,
+          "mrr@10": 0.6521825396825397,
+          "ndcg@10": 0.6616593913387006
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.7777777777777778,
+          "success@3": 0.7777777777777778,
+          "mrr@10": 0.7777777777777778,
+          "ndcg@10": 0.7347941325294953
+        },
+        "fallback": {
+          "auroc": 0.7665343915343915,
+          "threshold": -1.0,
+          "answerable_kept": 1.0,
+          "unanswerable_rejected": 0.0,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 2.76,
+          "p95": 4.044
+        },
+        "signature": "bm25|fastembed:minishlab/potion-retrieval-32M|none|expand=True"
+      },
+      "hybrid": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.6071428571428571,
+          "success@3": 0.8095238095238095,
+          "success@5": 0.8928571428571429,
+          "recall@5": 0.8928571428571429,
+          "mrr@10": 0.721825396825397,
+          "ndcg@10": 0.780225778173147
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.8888888888888888,
+          "success@3": 1.0,
+          "mrr@10": 0.9444444444444444,
+          "ndcg@10": 0.9468974256389462
+        },
+        "fallback": {
+          "auroc": 0.7784391534391535,
+          "threshold": 0.16476658284664153,
+          "answerable_kept": 0.8928571428571429,
+          "unanswerable_rejected": 0.4444444444444444,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 2.7350000000000003,
+          "p95": 3.811
+        },
+        "signature": "hybrid|fastembed:minishlab/potion-retrieval-32M|none|expand=False"
+      },
+      "hybrid+expansion": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.8095238095238095,
+          "success@3": 0.9285714285714286,
+          "success@5": 0.9404761904761905,
+          "recall@5": 0.9404761904761905,
+          "mrr@10": 0.8720238095238093,
+          "ndcg@10": 0.8951253447721558
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.9444444444444444,
+          "success@3": 1.0,
+          "mrr@10": 0.9722222222222222,
+          "ndcg@10": 0.9785081773758587
+        },
+        "fallback": {
+          "auroc": 0.8544973544973545,
+          "threshold": 0.18298610299825668,
+          "answerable_kept": 0.8928571428571429,
+          "unanswerable_rejected": 0.5,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 3.1550000000000002,
+          "p95": 5.817999999999999
+        },
+        "signature": "hybrid|fastembed:minishlab/potion-retrieval-32M|none|expand=True"
+      },
+      "hybrid+expansion+rerank": {
+        "synthetic": {
+          "n": 84,
+          "success@1": 0.7619047619047619,
+          "success@3": 0.7976190476190477,
+          "success@5": 0.8690476190476191,
+          "recall@5": 0.8690476190476191,
+          "mrr@10": 0.801388888888889,
+          "ndcg@10": 0.8335424824762563
+        },
+        "real": {
+          "n": 18,
+          "success@1": 0.8888888888888888,
+          "success@3": 1.0,
+          "mrr@10": 0.9444444444444444,
+          "ndcg@10": 0.9572434218179673
+        },
+        "fallback": {
+          "auroc": 0.8465608465608465,
+          "threshold": 2.4342063001957426e-05,
+          "answerable_kept": 0.8928571428571429,
+          "unanswerable_rejected": 0.2777777777777778,
+          "n_unanswerable": 36
+        },
+        "latency_ms": {
+          "p50": 504.97,
+          "p95": 670.654
+        },
+        "signature": "hybrid|fastembed:minishlab/potion-retrieval-32M|fastembed-ce:Xenova/ms-marco-MiniLM-L-6-v2|expand=True"
+      }
+    }
+  }
+}

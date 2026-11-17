@@ -1,0 +1,39 @@
+{
+  "description": "Promotion gate. A candidate model ships only if every BLOCKING check passes. Thresholds are starting points chosen by an engineer, not clinically validated: have a clinician review them before 'production'.",
+  "channels": {
+    "demo": {
+      "allowed_label_sources": ["synthetic-rules", "ktas-korea", "mimic-iv-ed"],
+      "blocking": ["parity", "golden", "regression", "baselines"],
+      "requires_signoff": false
+    },
+    "research": {
+      "allowed_label_sources": ["ktas-korea", "mimic-iv-ed"],
+      "blocking": ["parity", "golden", "regression", "baselines", "absolute", "subgroups", "calibration"],
+      "requires_signoff": false
+    },
+    "production": {
+      "allowed_label_sources": ["mimic-iv-ed"],
+      "blocking": ["parity", "golden", "regression", "baselines", "absolute", "subgroups", "calibration"],
+      "requires_signoff": true
+    }
+  },
+  "absolute": {
+    "min_high_acuity_sensitivity": 0.85,
+    "max_severe_under_triage": 0.03
+  },
+  "calibration": {"max_ece": 0.08},
+  "subgroups": {"min_n": 30, "max_high_acuity_sensitivity_gap": 0.10, "names": ["pediatric (<18y)", "geriatric (65+y)"]},
+  "regression": {
+    "applies_only_when_same_dataset": true,
+    "max_drop_high_acuity_sensitivity": 0.01,
+    "max_rise_severe_under_triage": 0.005,
+    "max_drop_macro_f1": 0.02,
+    "max_rise_ece": 0.02
+  },
+  "baselines": {
+    "xgb_rules_must_match_rules_only_high_acuity_sensitivity": true,
+    "xgb_rules_macro_f1_must_beat_logreg_by": 0.0
+  },
+  "parity": {"max_abs_prob_diff": 0.0001, "max_esi_mismatches": 0},
+  "golden": {"tolerance": 0.0}
+}

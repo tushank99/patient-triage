@@ -1,0 +1,141 @@
+{
+  "model_version": "xgb-v3-synthetic-rules-20261115",
+  "label_source": "synthetic-rules",
+  "run_id": "20261115-140225-synthetic-rules-d27139-v3",
+  "feature_schema_version": "3",
+  "features": [
+    {
+      "name": "age_years",
+      "unit": "years",
+      "min": 0.0,
+      "max": 125.0,
+      "label": "Age"
+    },
+    {
+      "name": "heart_rate",
+      "unit": "bpm",
+      "min": 20,
+      "max": 300,
+      "label": "Heart rate"
+    },
+    {
+      "name": "systolic_bp",
+      "unit": "mmHg",
+      "min": 40,
+      "max": 300,
+      "label": "Systolic BP"
+    },
+    {
+      "name": "diastolic_bp",
+      "unit": "mmHg",
+      "min": 20,
+      "max": 200,
+      "label": "Diastolic BP"
+    },
+    {
+      "name": "respiratory_rate",
+      "unit": "breaths/min",
+      "min": 4,
+      "max": 80,
+      "label": "Respiratory rate"
+    },
+    {
+      "name": "oxygen_saturation",
+      "unit": "%",
+      "min": 40.0,
+      "max": 100.0,
+      "label": "SpO2"
+    },
+    {
+      "name": "temperature_celsius",
+      "unit": "C",
+      "min": 30.0,
+      "max": 45.0,
+      "label": "Temperature"
+    },
+    {
+      "name": "pain_score",
+      "unit": "0-10",
+      "min": 0,
+      "max": 10,
+      "label": "Pain score"
+    },
+    {
+      "name": "has_prior_history",
+      "unit": "bool",
+      "min": 0,
+      "max": 1,
+      "label": "Prior history on file"
+    },
+    {
+      "name": "heart_rate_missing",
+      "unit": "bool",
+      "min": 0,
+      "max": 1,
+      "derived_from": "heart_rate",
+      "kind": "is_missing",
+      "label": "Heart rate not measured"
+    },
+    {
+      "name": "systolic_bp_missing",
+      "unit": "bool",
+      "min": 0,
+      "max": 1,
+      "derived_from": "systolic_bp",
+      "kind": "is_missing",
+      "label": "Systolic BP not measured"
+    },
+    {
+      "name": "respiratory_rate_missing",
+      "unit": "bool",
+      "min": 0,
+      "max": 1,
+      "derived_from": "respiratory_rate",
+      "kind": "is_missing",
+      "label": "Respiratory rate not measured"
+    },
+    {
+      "name": "oxygen_saturation_missing",
+      "unit": "bool",
+      "min": 0,
+      "max": 1,
+      "derived_from": "oxygen_saturation",
+      "kind": "is_missing",
+      "label": "SpO2 not measured"
+    },
+    {
+      "name": "temperature_celsius_missing",
+      "unit": "bool",
+      "min": 0,
+      "max": 1,
+      "derived_from": "temperature_celsius",
+      "kind": "is_missing",
+      "label": "Temperature not measured"
+    },
+    {
+      "name": "pain_score_missing",
+      "unit": "bool",
+      "min": 0,
+      "max": 1,
+      "derived_from": "pain_score",
+      "kind": "is_missing",
+      "label": "Pain score not measured"
+    }
+  ],
+  "class_to_esi": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "missing_value": "NaN",
+  "calibration": {
+    "method": "temperature",
+    "temperature": 0.909,
+    "fit_on": "out-of-fold development predictions"
+  },
+  "joblib_sha256": "d6c4f52b0018c2c970a15dcae2300f8737c2f5547bb31ed6a4c77e4145df4905",
+  "onnx_sha256": "f0472c238f4e8cd3457f742db598a5f384fcd0ab0dc4418b51acb84d87bd5886",
+  "onnx_file": "triage_model.onnx"
+}

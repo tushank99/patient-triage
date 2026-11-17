@@ -24,8 +24,8 @@ export function DispositionModal() {
     setChecks({ paged: false, searched: false, called: false, notified: false });
   };
 
-  const handleFinalConfirm = () => {
-    removePatient(patient.id, disposition, { checks, timestamp: new Date().toISOString() });
+  const handleFinalConfirm = async () => {
+    await removePatient(patient.id, disposition, { checks });
     resetModalState();
   };
 
@@ -61,7 +61,7 @@ export function DispositionModal() {
               Cancel
             </button>
             <button 
-              onClick={handleFinalConfirm}
+              onClick={() => void handleFinalConfirm()}
               className="flex-1 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-sm"
             >
               Confirm Removal

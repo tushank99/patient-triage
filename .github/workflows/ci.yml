@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r backend/requirements-dev.txt
+      # Golden regression set, safety rules, PII, idempotency, OpenAPI snapshot,
+      # model bundle parity (ONNX vs joblib) and seed idempotency. No network, no LLM.
+      - run: python -m pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      # The committed API types must be exactly what contracts/openapi.json generates.
+      - run: npm run gen:api && git diff --exit-code -- src/lib/api-types.ts
+      # Fails if any screen builds a request that no longer matches the backend contract.
+      - run: npm run typecheck
+      # Browser inference (onnxruntime-web + edge-math.ts) must equal the server's model on shared vectors.
+      - run: npm run verify:onnx

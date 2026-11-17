@@ -1,0 +1,429 @@
+{
+  "dataset": "patient-master",
+  "version": "1.0.0",
+  "synthetic": true,
+  "notice": "Entirely synthetic. No real PHI. Structured facts are the ground truth; documents are rendered from them by backend/scripts/seed_data.py.",
+  "profiles": {
+    "rich": "Multiple documents; problem list, medications, allergies and encounter notes.",
+    "sparse": "One or two thin documents.",
+    "conflicting": "Documents disagree with each other (tests contradiction handling).",
+    "none": "No documents (tests the zero-history fallback)."
+  },
+  "patients": [
+    {
+      "mrn": "MRN-A3F9", "name": "Jane, Anne", "gender": "F", "date_of_birth": "1981-03-10", "profile": "rich",
+      "edge_case": "Temporal trap: pregnancy in 2021 is RESOLVED. Prior MI, penicillin allergy.",
+      "conditions": [
+        {"name": "Hypertension", "status": "active", "onset": "2015-03"},
+        {"name": "Type 2 diabetes mellitus", "status": "active", "onset": "2018-07"},
+        {"name": "NSTEMI, s/p LAD stent", "status": "historical", "onset": "2022-03"},
+        {"name": "Pregnancy (delivered Feb 2021)", "status": "resolved", "onset": "2020-06", "resolved": "2021-02"}
+      ],
+      "medications": [
+        {"name": "Lisinopril", "dose": "20 mg daily", "class": "ace_inhibitor", "status": "active", "since": "2015-04"},
+        {"name": "Metformin", "dose": "1000 mg BID", "class": "biguanide", "status": "active", "since": "2018-08"},
+        {"name": "Aspirin", "dose": "81 mg daily", "class": "antiplatelet", "status": "active", "since": "2022-03"},
+        {"name": "Atorvastatin", "dose": "80 mg nightly", "class": "statin", "status": "active", "since": "2022-03"}
+      ],
+      "allergies": [{"substance": "Penicillin", "reaction": "Hives", "severity": "moderate"}],
+      "encounters": [
+        {"date": "2021-01-20", "doc_type": "er_note", "title": "ER note: third-trimester pregnancy, reduced fetal movement", "text": "33 weeks pregnant, reduced fetal movement. Reassuring CTG, discharged to obstetrics follow-up. Delivered healthy infant Feb 2021. Condition RESOLVED."},
+        {"date": "2022-03-08", "doc_type": "discharge_summary", "title": "Discharge summary: NSTEMI", "text": "Presented with crushing substernal chest pain and diaphoresis. Troponin elevated. Cath: 90% proximal LAD stenosis, drug-eluting stent placed. Discharged on aspirin, atorvastatin."},
+        {"date": "2024-10-14", "doc_type": "discharge_summary", "title": "Discharge summary: hypertensive urgency", "text": "BP 212/118 with headache, no end-organ damage. Lisinopril increased to 20 mg. Counselled on adherence."},
+        {"date": "2026-05-02", "doc_type": "lab_summary", "title": "Lab summary: diabetes and lipid panel", "text": "HbA1c 7.9% (target <7). LDL 92 mg/dL. eGFR 78. Potassium 4.4."}
+      ]
+    },
+    {
+      "mrn": "MRN-B7K2", "name": "Okafor, Amara", "gender": "F", "date_of_birth": "1964-06-02", "profile": "rich",
+      "conditions": [{"name": "Focal epilepsy", "status": "active", "onset": "2009-01"}, {"name": "Hyperlipidemia", "status": "active", "onset": "2019-05"}],
+      "medications": [
+        {"name": "Levetiracetam", "dose": "1000 mg BID", "class": "antiepileptic", "status": "active", "since": "2009-02"},
+        {"name": "Simvastatin", "dose": "20 mg nightly", "class": "statin", "status": "active", "since": "2019-06"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2025-09-11", "doc_type": "er_note", "title": "ER note: breakthrough seizure", "text": "Generalised seizure after two missed levetiracetam doses. Post-ictal 40 minutes, returned to baseline. CT head negative."},
+        {"date": "2026-02-20", "doc_type": "clinic_note", "title": "Neurology clinic note", "text": "Seizure-free since September. Adherence reinforced. No driving for 6 months from last seizure."}
+      ]
+    },
+    {
+      "mrn": "MRN-C2M8", "name": "Reyes, Miguel", "gender": "M", "date_of_birth": "1968-01-25", "profile": "rich",
+      "conditions": [{"name": "COPD (GOLD 3)", "status": "active", "onset": "2017-04"}, {"name": "Former smoker, 35 pack-years", "status": "historical", "onset": "1985-01"}],
+      "medications": [
+        {"name": "Tiotropium", "dose": "18 mcg inhaled daily", "class": "bronchodilator", "status": "active", "since": "2017-05"},
+        {"name": "Albuterol", "dose": "2 puffs q4h PRN", "class": "bronchodilator", "status": "active", "since": "2017-05"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2025-12-03", "doc_type": "discharge_summary", "title": "Discharge summary: COPD exacerbation", "text": "Admitted 4 days with COPD exacerbation, treated with steroids and nebulisers. Baseline SpO2 92-93% on room air at discharge."},
+        {"date": "2026-06-18", "doc_type": "lab_summary", "title": "Pulmonary function tests", "text": "FEV1 41% predicted, FEV1/FVC 0.52. Severe obstruction, stable versus 2025."}
+      ]
+    },
+    {
+      "mrn": "MRN-D9P4", "name": "Chen, Li Wei", "gender": "F", "date_of_birth": "1992-09-14", "profile": "rich",
+      "conditions": [{"name": "Right ovarian cyst", "status": "resolved", "onset": "2023-05", "resolved": "2023-09"}],
+      "medications": [{"name": "Combined oral contraceptive", "dose": "1 tablet daily", "class": "hormonal_contraceptive", "status": "active", "since": "2023-10"}],
+      "allergies": [{"substance": "Sulfonamide antibiotics", "reaction": "Rash", "severity": "mild"}],
+      "encounters": [
+        {"date": "2023-05-21", "doc_type": "er_note", "title": "ER note: right lower quadrant pain", "text": "RLQ pain. Ultrasound: 4 cm simple right ovarian cyst, no torsion. Appendix normal. Follow-up ultrasound Sept 2023 showed resolution."}
+      ]
+    },
+    {
+      "mrn": "MRN-E4R7", "name": "Patel, Priya", "gender": "F", "date_of_birth": "1985-02-11", "profile": "rich",
+      "edge_case": "Prior DVT; anticoagulant DISCONTINUED (temporal trap for the anticoagulation rule).",
+      "conditions": [
+        {"name": "Left leg DVT", "status": "resolved", "onset": "2022-06", "resolved": "2022-12"},
+        {"name": "Factor V Leiden, heterozygous", "status": "active", "onset": "2022-07"}
+      ],
+      "medications": [
+        {"name": "Apixaban", "dose": "5 mg BID", "class": "anticoagulant", "status": "discontinued", "since": "2022-06", "stopped": "2022-12"},
+        {"name": "Combined oral contraceptive", "dose": "1 tablet daily", "class": "hormonal_contraceptive", "status": "discontinued", "since": "2019-01", "stopped": "2022-06"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2022-06-09", "doc_type": "er_note", "title": "ER note: left leg DVT", "text": "Unilateral left calf swelling. Doppler: femoral-popliteal DVT. Started apixaban, oral contraceptive stopped."},
+        {"date": "2022-12-15", "doc_type": "clinic_note", "title": "Hematology clinic note", "text": "Completed 6 months apixaban; stopped. Heterozygous factor V Leiden. Advised avoiding estrogen-containing contraception."}
+      ]
+    },
+    {
+      "mrn": "MRN-F6T1", "name": "Smith, Karen", "gender": "F", "date_of_birth": "1997-07-30", "profile": "rich",
+      "conditions": [{"name": "Irritable bowel syndrome", "status": "active", "onset": "2020-02"}, {"name": "Cholelithiasis", "status": "active", "onset": "2025-04"}],
+      "medications": [{"name": "Dicyclomine", "dose": "20 mg PRN", "class": "antispasmodic", "status": "active", "since": "2020-03"}],
+      "allergies": [],
+      "encounters": [
+        {"date": "2025-04-02", "doc_type": "er_note", "title": "ER note: epigastric pain after meals", "text": "Postprandial RUQ/epigastric pain. Ultrasound: multiple gallstones, no cholecystitis. Referred for elective cholecystectomy (not yet scheduled)."}
+      ]
+    },
+    {
+      "mrn": "MRN-G8W5", "name": "Novak, Tomas", "gender": "M", "date_of_birth": "1973-04-19", "profile": "rich",
+      "conditions": [{"name": "Recurrent nephrolithiasis", "status": "active", "onset": "2016-08"}],
+      "medications": [{"name": "Tamsulosin", "dose": "0.4 mg PRN during stone episodes", "class": "alpha_blocker", "status": "active", "since": "2024-03"}],
+      "allergies": [{"substance": "Morphine", "reaction": "Severe nausea and vomiting (intolerance)", "severity": "mild"}],
+      "encounters": [
+        {"date": "2024-03-12", "doc_type": "discharge_summary", "title": "Discharge summary: obstructing ureteral stone", "text": "7 mm left ureteral stone with hydronephrosis. Ureteroscopy and laser lithotripsy. Stone analysis: calcium oxalate."},
+        {"date": "2026-01-08", "doc_type": "imaging_report", "title": "CT KUB", "text": "Two non-obstructing 3 mm right renal stones. No hydronephrosis."}
+      ]
+    },
+    {
+      "mrn": "MRN-H1Y9", "name": "Garcia, Sofia", "gender": "F", "date_of_birth": "2002-03-05", "profile": "rich",
+      "conditions": [{"name": "Mild intermittent asthma", "status": "active", "onset": "2010-01"}],
+      "medications": [{"name": "Albuterol", "dose": "2 puffs PRN", "class": "bronchodilator", "status": "active", "since": "2010-01"}],
+      "allergies": [{"substance": "Latex", "reaction": "Contact urticaria", "severity": "moderate"}],
+      "encounters": [
+        {"date": "2019-08-22", "doc_type": "immunization_record", "title": "Immunization record", "text": "Tdap booster given 2019-08-22. Next tetanus booster due 2029."},
+        {"date": "2025-10-30", "doc_type": "clinic_note", "title": "Primary care annual visit", "text": "Asthma well controlled, albuterol use under twice monthly. Latex allergy noted for procedures."}
+      ]
+    },
+    {
+      "mrn": "MRN-J5Q3", "name": "Kim, Daniel", "gender": "M", "date_of_birth": "1988-05-17", "profile": "rich",
+      "conditions": [{"name": "Right ankle sprain", "status": "resolved", "onset": "2023-06", "resolved": "2023-08"}],
+      "medications": [],
+      "allergies": [],
+      "encounters": [
+        {"date": "2023-06-04", "doc_type": "er_note", "title": "ER note: right ankle inversion injury", "text": "Inversion injury playing football. Ottawa rules negative, no X-ray. RICE, crutches. Recovered by August 2023."},
+        {"date": "2025-02-14", "doc_type": "clinic_note", "title": "Primary care physical", "text": "Healthy. No chronic conditions. Exercises regularly."}
+      ]
+    },
+    {
+      "mrn": "MRN-K3V6", "name": "Brown, Alice", "gender": "F", "date_of_birth": "1959-08-08", "profile": "rich",
+      "conditions": [
+        {"name": "Hypertension", "status": "active", "onset": "2008-01"},
+        {"name": "Hypothyroidism", "status": "active", "onset": "2012-05"},
+        {"name": "Osteoporosis", "status": "active", "onset": "2020-11"}
+      ],
+      "medications": [
+        {"name": "Amlodipine", "dose": "5 mg daily", "class": "calcium_channel_blocker", "status": "active", "since": "2008-02"},
+        {"name": "Levothyroxine", "dose": "75 mcg daily", "class": "thyroid_hormone", "status": "active", "since": "2012-05"},
+        {"name": "Alendronate", "dose": "70 mg weekly", "class": "bisphosphonate", "status": "active", "since": "2020-12"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2026-04-09", "doc_type": "lab_summary", "title": "Lab summary", "text": "TSH 2.1 (normal). Creatinine 0.9. BP at clinic 132/80."},
+        {"date": "2026-04-09", "doc_type": "clinic_note", "title": "Primary care follow-up", "text": "Stable on current regimen. 90-day refills issued for amlodipine, levothyroxine, alendronate."}
+      ]
+    },
+    {
+      "mrn": "MRN-L8N2", "name": "Ibrahim, Yusuf", "gender": "M", "date_of_birth": "2007-01-21", "profile": "conflicting",
+      "edge_case": "Contradiction: allergy record documents penicillin anaphylaxis; a later urgent-care note records 'no known drug allergies'.",
+      "conditions": [{"name": "Recurrent streptococcal pharyngitis", "status": "active", "onset": "2018-10"}],
+      "medications": [],
+      "allergies": [{"substance": "Penicillin", "reaction": "Anaphylaxis (2019, required epinephrine)", "severity": "severe"}],
+      "encounters": [
+        {"date": "2019-11-02", "doc_type": "er_note", "title": "ER note: anaphylaxis after amoxicillin", "text": "Throat tightness, urticaria and hypotension 20 minutes after first amoxicillin dose for strep throat. IM epinephrine given. Penicillin allergy documented."},
+        {"date": "2025-03-17", "doc_type": "clinic_note", "title": "Urgent care note: sore throat", "text": "Sore throat 3 days. Patient states no known drug allergies. Rapid strep positive. Prescribed azithromycin."}
+      ]
+    },
+    {
+      "mrn": "MRN-M2X8", "name": "Gill, Hanna", "gender": "F", "date_of_birth": "1955-02-27", "profile": "rich",
+      "conditions": [
+        {"name": "Atrial fibrillation", "status": "active", "onset": "2018-03"},
+        {"name": "Chronic kidney disease stage 3a", "status": "active", "onset": "2021-06"},
+        {"name": "Hypertension", "status": "active", "onset": "2005-01"}
+      ],
+      "medications": [
+        {"name": "Warfarin", "dose": "5 mg daily, INR goal 2-3", "class": "anticoagulant", "status": "active", "since": "2018-03"},
+        {"name": "Metoprolol succinate", "dose": "50 mg daily", "class": "beta_blocker", "status": "active", "since": "2018-03"}
+      ],
+      "allergies": [{"substance": "Iodinated contrast", "reaction": "Hives", "severity": "moderate"}],
+      "encounters": [
+        {"date": "2026-08-20", "doc_type": "lab_summary", "title": "Anticoagulation clinic", "text": "INR 2.6. eGFR 52. Warfarin dose unchanged."},
+        {"date": "2024-02-11", "doc_type": "discharge_summary", "title": "Discharge summary: AF with rapid ventricular response", "text": "AF with RVR 150s, rate controlled with metoprolol. Continued warfarin."}
+      ]
+    },
+    {
+      "mrn": "MRN-N6C4", "name": "Fischer, Otto", "gender": "M", "date_of_birth": "1971-10-03", "profile": "rich",
+      "conditions": [{"name": "Mechanical aortic valve replacement", "status": "active", "onset": "2016-09"}],
+      "medications": [{"name": "Warfarin", "dose": "6 mg daily, INR goal 2.5-3.5", "class": "anticoagulant", "status": "active", "since": "2016-09"}],
+      "allergies": [],
+      "encounters": [
+        {"date": "2016-09-28", "doc_type": "discharge_summary", "title": "Discharge summary: aortic valve replacement", "text": "Mechanical AVR for severe aortic stenosis (bicuspid valve). Lifelong warfarin."},
+        {"date": "2026-09-30", "doc_type": "lab_summary", "title": "Anticoagulation clinic", "text": "INR 3.1, within target."}
+      ]
+    },
+    {
+      "mrn": "MRN-P9Z1", "name": "Adeyemi, Femi", "gender": "M", "date_of_birth": "1996-06-12", "profile": "none",
+      "conditions": [], "medications": [], "allergies": [], "encounters": []
+    },
+    {
+      "mrn": "MRN-X1L2", "name": "Ruiz, Carlos", "gender": "M", "date_of_birth": "1978-12-01", "profile": "none",
+      "conditions": [], "medications": [], "allergies": [], "encounters": []
+    },
+    {
+      "mrn": "MRN-Y4T7", "name": "Chang, Wei", "gender": "M", "date_of_birth": "1961-04-04", "profile": "rich",
+      "edge_case": "Atrial fibrillation NOT anticoagulated (declined) plus prior TIA: high stroke risk.",
+      "conditions": [
+        {"name": "Atrial fibrillation", "status": "active", "onset": "2023-01"},
+        {"name": "Transient ischemic attack", "status": "historical", "onset": "2024-07"},
+        {"name": "Hypertension", "status": "active", "onset": "2010-01"}
+      ],
+      "medications": [
+        {"name": "Diltiazem", "dose": "120 mg daily", "class": "calcium_channel_blocker", "status": "active", "since": "2023-01"},
+        {"name": "Aspirin", "dose": "81 mg daily", "class": "antiplatelet", "status": "active", "since": "2024-07"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2024-07-15", "doc_type": "discharge_summary", "title": "Discharge summary: TIA", "text": "20 minutes of right arm weakness, fully resolved. MRI no infarct. CHA2DS2-VASc 3. Anticoagulation offered and declined by patient; aspirin started."}
+      ]
+    },
+    {
+      "mrn": "MRN-Z8Q3", "name": "Mwangi, Grace", "gender": "F", "date_of_birth": "2004-11-09", "profile": "rich",
+      "edge_case": "Severe asthma with prior ICU intubation; aspirin-exacerbated respiratory disease.",
+      "conditions": [{"name": "Severe persistent asthma", "status": "active", "onset": "2009-01"}, {"name": "Aspirin-exacerbated respiratory disease", "status": "active", "onset": "2021-03"}],
+      "medications": [
+        {"name": "Budesonide-formoterol", "dose": "2 puffs BID", "class": "inhaled_corticosteroid", "status": "active", "since": "2021-03"},
+        {"name": "Albuterol", "dose": "2 puffs PRN", "class": "bronchodilator", "status": "active", "since": "2009-01"}
+      ],
+      "allergies": [{"substance": "Aspirin / NSAIDs", "reaction": "Bronchospasm", "severity": "severe"}],
+      "encounters": [
+        {"date": "2023-02-06", "doc_type": "discharge_summary", "title": "Discharge summary: status asthmaticus, ICU", "text": "Near-fatal asthma, intubated 2 days in ICU. Trigger: viral URI. High-risk asthma flag added."},
+        {"date": "2026-03-14", "doc_type": "clinic_note", "title": "Pulmonology clinic note", "text": "Two ER visits this year. Adherence fair. Biologic therapy being considered."}
+      ]
+    },
+    {
+      "mrn": "MRN-W5R9", "name": "Ivanov, Alexei", "gender": "M", "date_of_birth": "1986-07-23", "profile": "rich",
+      "conditions": [{"name": "Type 1 diabetes mellitus", "status": "active", "onset": "2001-05"}, {"name": "Diabetic ketoacidosis", "status": "resolved", "onset": "2024-01", "resolved": "2024-01"}],
+      "medications": [
+        {"name": "Insulin glargine", "dose": "24 units nightly", "class": "insulin", "status": "active", "since": "2001-05"},
+        {"name": "Insulin lispro", "dose": "sliding scale with meals", "class": "insulin", "status": "active", "since": "2001-05"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2024-01-19", "doc_type": "discharge_summary", "title": "Discharge summary: DKA", "text": "DKA (pH 7.12) triggered by insulin pump failure. Resolved with insulin infusion. Switched to injections."},
+        {"date": "2026-07-01", "doc_type": "lab_summary", "title": "Lab summary", "text": "HbA1c 7.2%. Monofilament sensation reduced in both feet (early neuropathy)."}
+      ]
+    },
+    {
+      "mrn": "MRN-V2P4", "name": "Singh, Arjun", "gender": "M", "date_of_birth": "1998-02-16", "profile": "rich",
+      "edge_case": "Asplenia after trauma: high risk for overwhelming infection.",
+      "conditions": [{"name": "Asplenia (splenectomy after MVC)", "status": "active", "onset": "2020-05"}],
+      "medications": [],
+      "allergies": [],
+      "encounters": [
+        {"date": "2020-05-30", "doc_type": "discharge_summary", "title": "Discharge summary: splenic rupture", "text": "Grade IV splenic laceration after motorbike collision. Emergency splenectomy. Post-splenectomy vaccines given."},
+        {"date": "2025-09-05", "doc_type": "immunization_record", "title": "Immunization record", "text": "Pneumococcal, meningococcal ACWY and B boosters up to date as of 2025-09-05."}
+      ]
+    },
+    {
+      "mrn": "MRN-U7K1", "name": "Dubois, Claire", "gender": "F", "date_of_birth": "1991-05-28", "profile": "rich",
+      "conditions": [{"name": "Chronic migraine with aura", "status": "active", "onset": "2008-01"}],
+      "medications": [
+        {"name": "Topiramate", "dose": "50 mg BID", "class": "antiepileptic", "status": "active", "since": "2022-04"},
+        {"name": "Sumatriptan", "dose": "50 mg PRN", "class": "triptan", "status": "active", "since": "2015-01"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2025-11-20", "doc_type": "er_note", "title": "ER note: migraine with vomiting", "text": "Typical migraine with visual aura and vomiting. Neuro exam normal. IV fluids, metoclopramide. Discharged."},
+        {"date": "2022-03-02", "doc_type": "imaging_report", "title": "MRI brain", "text": "No intracranial abnormality."}
+      ]
+    },
+    {
+      "mrn": "MRN-T3M6", "name": "Monalisa, Liam", "gender": "M", "date_of_birth": "1976-09-09", "profile": "sparse",
+      "conditions": [], "medications": [], "allergies": [],
+      "encounters": [
+        {"date": "2019-04-12", "doc_type": "er_note", "title": "ER note: hand laceration", "text": "2 cm laceration to left palm, sutured. Tetanus toxoid given."}
+      ]
+    },
+    {
+      "mrn": "MRN-PED-001", "name": "Hart, Ava", "gender": "F", "date_of_birth": "2026-08-15", "profile": "sparse",
+      "edge_case": "Pediatric patient with a thin history (birth record and one well-child visit).",
+      "conditions": [], "medications": [], "allergies": [],
+      "encounters": [
+        {"date": "2026-08-16", "doc_type": "discharge_summary", "title": "Newborn discharge summary", "text": "Term 39 weeks, uncomplicated vaginal delivery, birth weight 3.3 kg. Newborn screen normal. Maternal GBS negative."},
+        {"date": "2026-10-15", "doc_type": "clinic_note", "title": "2-month well-child visit", "text": "Growing well. 2-month vaccines given."}
+      ]
+    },
+    {
+      "mrn": "MRN-SIL-002", "name": "Okoro, Daniel", "gender": "M", "date_of_birth": "1972-03-18", "profile": "rich",
+      "edge_case": "Asthma with silent hypoxia: low SpO2 but minimal symptoms.",
+      "conditions": [{"name": "Asthma, moderate persistent", "status": "active", "onset": "2004-01"}, {"name": "Obesity (BMI 34)", "status": "active", "onset": "2015-01"}],
+      "medications": [
+        {"name": "Fluticasone", "dose": "250 mcg inhaled BID", "class": "inhaled_corticosteroid", "status": "active", "since": "2019-01"},
+        {"name": "Albuterol", "dose": "2 puffs PRN", "class": "bronchodilator", "status": "active", "since": "2004-01"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2026-01-22", "doc_type": "lab_summary", "title": "Pulmonary function tests", "text": "FEV1 63% predicted with 15% bronchodilator reversibility. Resting SpO2 97%."},
+        {"date": "2025-06-10", "doc_type": "clinic_note", "title": "Primary care note", "text": "Reports under-perceiving breathlessness during previous flares. Asthma action plan given."}
+      ]
+    },
+    {
+      "mrn": "MRN-CNF-003", "name": "Lindqvist, Erik", "gender": "M", "date_of_birth": "1965-07-07", "profile": "rich",
+      "edge_case": "Hypertension plus dilated ascending aorta: dissection presentation with normal vitals.",
+      "conditions": [
+        {"name": "Hypertension, poorly controlled", "status": "active", "onset": "2010-01"},
+        {"name": "Bicuspid aortic valve", "status": "active", "onset": "2010-01"},
+        {"name": "Dilated ascending aorta (4.6 cm)", "status": "active", "onset": "2025-03"}
+      ],
+      "medications": [
+        {"name": "Amlodipine", "dose": "10 mg daily", "class": "calcium_channel_blocker", "status": "active", "since": "2012-01"},
+        {"name": "Losartan", "dose": "100 mg daily (patient reports frequently missing doses)", "class": "arb", "status": "active", "since": "2025-03"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2025-03-04", "doc_type": "imaging_report", "title": "Echocardiogram", "text": "Bicuspid aortic valve, mild AR. Ascending aorta 4.6 cm, increased from 4.2 cm in 2022. Cardiothoracic surgery referral."},
+        {"date": "2026-08-12", "doc_type": "clinic_note", "title": "Cardiology note", "text": "BP 168/96. Nonadherent to losartan. Surgical review pending if aorta reaches 5.0 cm."}
+      ]
+    },
+    {
+      "mrn": "MRN-ZER-004", "name": "Moreau, Julie", "gender": "F", "date_of_birth": "1997-01-30", "profile": "none",
+      "edge_case": "First-time walk-in with zero history.",
+      "conditions": [], "medications": [], "allergies": [], "encounters": []
+    },
+    {
+      "mrn": "MRN-GER-005", "name": "Whitfield, Margaret", "gender": "F", "date_of_birth": "1944-05-12", "profile": "rich",
+      "edge_case": "Elderly patient on an active anticoagulant who fell.",
+      "conditions": [
+        {"name": "Atrial fibrillation", "status": "active", "onset": "2017-09"},
+        {"name": "Osteoarthritis, knees", "status": "active", "onset": "2012-01"},
+        {"name": "Left distal radius fracture after fall", "status": "resolved", "onset": "2025-02", "resolved": "2025-05"}
+      ],
+      "medications": [
+        {"name": "Apixaban", "dose": "2.5 mg BID", "class": "anticoagulant", "status": "active", "since": "2017-09"},
+        {"name": "Acetaminophen", "dose": "1 g TID PRN", "class": "analgesic", "status": "active", "since": "2012-01"}
+      ],
+      "allergies": [{"substance": "Codeine", "reaction": "Confusion", "severity": "moderate"}],
+      "encounters": [
+        {"date": "2025-02-18", "doc_type": "er_note", "title": "ER note: mechanical fall, wrist fracture", "text": "Tripped at home. Left distal radius fracture, casted. CT head negative. On apixaban. Falls-risk referral made."},
+        {"date": "2026-06-03", "doc_type": "clinic_note", "title": "Geriatrics clinic note", "text": "Two falls in past year. Uses a walker. Apixaban continued after risk discussion (CHA2DS2-VASc 5)."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-006", "name": "Osei, Kwame", "gender": "M", "date_of_birth": "1991-08-21", "profile": "rich",
+      "conditions": [{"name": "Seasonal allergic rhinitis", "status": "active", "onset": "2010-01"}],
+      "medications": [{"name": "Cetirizine", "dose": "10 mg daily in spring", "class": "antihistamine", "status": "active", "since": "2010-01"}],
+      "allergies": [],
+      "encounters": [
+        {"date": "2024-09-17", "doc_type": "clinic_note", "title": "Annual physical", "text": "Healthy. Plays recreational basketball. Prior left wrist sprain 2018, fully recovered."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-007", "name": "Rossi, Elena", "gender": "F", "date_of_birth": "2004-04-04", "profile": "sparse",
+      "conditions": [], "medications": [], "allergies": [],
+      "encounters": [
+        {"date": "2017-09-01", "doc_type": "immunization_record", "title": "School immunization record", "text": "Tdap given 2017-09-01. No later tetanus booster on file."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-008", "name": "Haddad, Omar", "gender": "M", "date_of_birth": "1981-11-02", "profile": "conflicting",
+      "edge_case": "Medication list says lisinopril is active; a later note says it was stopped for cough.",
+      "conditions": [{"name": "Hypertension", "status": "active", "onset": "2019-02"}],
+      "medications": [{"name": "Lisinopril", "dose": "10 mg daily", "class": "ace_inhibitor", "status": "active", "since": "2019-02"}],
+      "allergies": [],
+      "encounters": [
+        {"date": "2026-06-24", "doc_type": "clinic_note", "title": "Primary care note: chronic dry cough", "text": "Persistent dry cough for 3 months, likely ACE-inhibitor related. Lisinopril STOPPED; losartan 50 mg started. Medication list not yet updated."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-009", "name": "Nguyen, Linh", "gender": "F", "date_of_birth": "1976-03-13", "profile": "rich",
+      "conditions": [{"name": "Recurrent urinary tract infections", "status": "active", "onset": "2021-01"}, {"name": "Type 2 diabetes mellitus", "status": "active", "onset": "2019-06"}],
+      "medications": [{"name": "Metformin", "dose": "500 mg BID", "class": "biguanide", "status": "active", "since": "2019-06"}],
+      "allergies": [{"substance": "Nitrofurantoin", "reaction": "Acute pulmonary reaction", "severity": "severe"}],
+      "encounters": [
+        {"date": "2025-08-08", "doc_type": "lab_summary", "title": "Urine culture", "text": "E. coli >100,000 CFU/mL, resistant to trimethoprim-sulfamethoxazole, sensitive to cephalexin."},
+        {"date": "2023-05-19", "doc_type": "er_note", "title": "ER note: reaction to nitrofurantoin", "text": "Dyspnoea and fever on day 5 of nitrofurantoin. Chest X-ray infiltrates. Resolved after stopping drug."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-010", "name": "Brennan, Patrick", "gender": "M", "date_of_birth": "1959-10-15", "profile": "rich",
+      "edge_case": "Heart failure with reduced EF: new leg swelling may be decompensation.",
+      "conditions": [{"name": "Heart failure with reduced ejection fraction (EF 35%)", "status": "active", "onset": "2022-04"}, {"name": "Hypertension", "status": "active", "onset": "2005-01"}],
+      "medications": [
+        {"name": "Furosemide", "dose": "40 mg daily", "class": "loop_diuretic", "status": "active", "since": "2022-04"},
+        {"name": "Carvedilol", "dose": "12.5 mg BID", "class": "beta_blocker", "status": "active", "since": "2022-04"},
+        {"name": "Sacubitril-valsartan", "dose": "49/51 mg BID", "class": "arni", "status": "active", "since": "2023-01"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2025-11-02", "doc_type": "discharge_summary", "title": "Discharge summary: acute decompensated heart failure", "text": "Admitted with leg oedema and orthopnoea, 6 kg weight gain. IV diuresis. Dry weight 84 kg."},
+        {"date": "2026-09-10", "doc_type": "lab_summary", "title": "Lab summary", "text": "BNP 620 pg/mL. Creatinine 1.3. Potassium 4.8."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-011", "name": "Park, Jason", "gender": "M", "date_of_birth": "2007-06-30", "profile": "sparse",
+      "conditions": [], "medications": [], "allergies": [],
+      "encounters": [
+        {"date": "2023-02-12", "doc_type": "er_note", "title": "ER note: infectious mononucleosis", "text": "Sore throat, fatigue and posterior cervical nodes. Monospot positive. Advised to avoid contact sports for 4 weeks."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-012", "name": "Kowalski, Anna", "gender": "F", "date_of_birth": "1985-12-19", "profile": "rich",
+      "conditions": [{"name": "Migraine without aura", "status": "active", "onset": "2005-01"}],
+      "medications": [{"name": "Sumatriptan", "dose": "100 mg PRN", "class": "triptan", "status": "active", "since": "2010-01"}],
+      "allergies": [],
+      "encounters": [
+        {"date": "2022-07-07", "doc_type": "imaging_report", "title": "CT head", "text": "No acute intracranial abnormality."},
+        {"date": "2026-02-02", "doc_type": "clinic_note", "title": "Neurology note", "text": "Migraines 3-4 per month, typical pattern with photophobia. Sumatriptan effective."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-013", "name": "Silva, Mateus", "gender": "M", "date_of_birth": "1998-09-25", "profile": "rich",
+      "conditions": [{"name": "Mild persistent asthma", "status": "active", "onset": "2012-01"}],
+      "medications": [{"name": "Fluticasone", "dose": "110 mcg inhaled BID", "class": "inhaled_corticosteroid", "status": "active", "since": "2018-01"}],
+      "allergies": [],
+      "encounters": [
+        {"date": "2026-05-15", "doc_type": "clinic_note", "title": "Primary care note", "text": "Asthma controlled. Fluticasone refill for 6 months issued."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-014", "name": "Fitzgerald, Thomas", "gender": "M", "date_of_birth": "1953-01-08", "profile": "rich",
+      "conditions": [
+        {"name": "Chronic low back pain, lumbar spinal stenosis", "status": "active", "onset": "2018-01"},
+        {"name": "Chronic kidney disease stage 3b", "status": "active", "onset": "2022-01"},
+        {"name": "Coronary artery disease", "status": "active", "onset": "2020-06"}
+      ],
+      "medications": [
+        {"name": "Gabapentin", "dose": "300 mg TID", "class": "gabapentinoid", "status": "active", "since": "2019-01"},
+        {"name": "Clopidogrel", "dose": "75 mg daily", "class": "antiplatelet", "status": "active", "since": "2020-06"}
+      ],
+      "allergies": [],
+      "encounters": [
+        {"date": "2024-05-20", "doc_type": "imaging_report", "title": "MRI lumbar spine", "text": "Moderate L4-L5 central canal stenosis. No cord compression."},
+        {"date": "2026-03-11", "doc_type": "clinic_note", "title": "Pain clinic note", "text": "Back pain stable at baseline 5/10. Avoid NSAIDs due to CKD (eGFR 38)."}
+      ]
+    },
+    {
+      "mrn": "MRN-STD-015", "name": "Ahmed, Sara", "gender": "F", "date_of_birth": "1995-03-22", "profile": "none",
+      "conditions": [], "medications": [], "allergies": [], "encounters": []
+    }
+  ]
+}

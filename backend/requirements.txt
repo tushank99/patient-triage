@@ -1,14 +1,22 @@
+# Runtime dependencies (what Render installs).
 fastapi==0.109.2
 uvicorn[standard]==0.27.1
 pydantic==2.6.1
 pydantic-settings==2.1.0
 sqlalchemy==2.0.25
 psycopg2-binary==2.9.9
-redis==5.0.1
 python-dotenv==1.0.1
+PyJWT==2.10.1
+alembic==1.20.1
+python-multipart==0.0.33
+pymupdf==2.1  # AGPL-3.0: see docs/INGESTION.md
+python-docx==1.2.0
+fastembed==0.9.1  # embeddings (pinned model hashes in backend/app/retrieval/models.lock.json)
 openai==3.6.0
 joblib==1.5.3
 numpy==2.5.2
 scikit-learn==1.9.0
 xgboost==3.4.1
-chromadb==1.5.9
+# Removed in Phase 0: chromadb (history now lives in Postgres; it also downloaded an embedding
+# model at startup, which timed out on Render's 512 MB free instance) and redis (never used).
+# Optional: chromadb (VECTOR_BACKEND=chroma), boto3 (STORAGE_BACKEND=s3)

@@ -1,0 +1,103 @@
+{
+  "engine": "rapidocr-ppocr-onnx",
+  "line_threshold": 0.85,
+  "field_threshold": 0.85,
+  "results": {
+    "clean": {
+      "cer": 0.18992304169767402,
+      "field_accuracy": 0.8111111111111111,
+      "n_fields": 90,
+      "by_kind": {
+        "lab": 0.9666666666666667,
+        "date": 0.25,
+        "mrn": 1.0,
+        "medication": 0.7083333333333334,
+        "allergy": 1.0
+      },
+      "auto_accept_rate": 0.6777777777777778,
+      "auto_accept_error_rate": 0.01639344262295082,
+      "error_catch_rate": 0.9411764705882353,
+      "mean_line_confidence": 0.9848333333333333
+    },
+    "skew 2.5deg": {
+      "cer": 0.1953582987302911,
+      "field_accuracy": 0.6555555555555556,
+      "n_fields": 90,
+      "by_kind": {
+        "lab": 0.8,
+        "date": 0.25,
+        "mrn": 1.0,
+        "medication": 0.3333333333333333,
+        "allergy": 1.0
+      },
+      "auto_accept_rate": 0.6,
+      "auto_accept_error_rate": 0.07407407407407407,
+      "error_catch_rate": 0.8709677419354839,
+      "mean_line_confidence": 0.985
+    },
+    "noise+blur": {
+      "cer": 0.2149627325222708,
+      "field_accuracy": 0.6666666666666666,
+      "n_fields": 90,
+      "by_kind": {
+        "lab": 0.9333333333333333,
+        "date": 0.25,
+        "mrn": 1.0,
+        "medication": 0.20833333333333334,
+        "allergy": 1.0
+      },
+      "auto_accept_rate": 0.6,
+      "auto_accept_error_rate": 0.018518518518518517,
+      "error_catch_rate": 0.9666666666666667,
+      "mean_line_confidence": 0.9878333333333332
+    },
+    "low contrast": {
+      "cer": 0.17540707924214763,
+      "field_accuracy": 0.7888888888888889,
+      "n_fields": 90,
+      "by_kind": {
+        "lab": 0.9,
+        "date": 0.25,
+        "mrn": 1.0,
+        "medication": 0.7083333333333334,
+        "allergy": 1.0
+      },
+      "auto_accept_rate": 0.6777777777777778,
+      "auto_accept_error_rate": 0.01639344262295082,
+      "error_catch_rate": 0.9473684210526315,
+      "mean_line_confidence": 0.9845833333333333
+    },
+    "jpeg q15 + downscale": {
+      "cer": 0.2425560783040314,
+      "field_accuracy": 0.5,
+      "n_fields": 90,
+      "by_kind": {
+        "lab": 0.5666666666666667,
+        "date": 0.25,
+        "mrn": 0.9166666666666666,
+        "medication": 0.125,
+        "allergy": 0.9166666666666666
+      },
+      "auto_accept_rate": 0.3888888888888889,
+      "auto_accept_error_rate": 0.05714285714285714,
+      "error_catch_rate": 0.9555555555555556,
+      "mean_line_confidence": 0.9594999999999999
+    },
+    "rotated 90deg": {
+      "cer": 0.18917437326503805,
+      "field_accuracy": 0.8111111111111111,
+      "n_fields": 90,
+      "by_kind": {
+        "lab": 0.9333333333333333,
+        "date": 0.25,
+        "mrn": 1.0,
+        "medication": 0.75,
+        "allergy": 1.0
+      },
+      "auto_accept_rate": 0.6888888888888889,
+      "auto_accept_error_rate": 0.016129032258064516,
+      "error_catch_rate": 0.9411764705882353,
+      "mean_line_confidence": 0.9841666666666667
+    }
+  }
+}

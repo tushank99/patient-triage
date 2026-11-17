@@ -1,0 +1,9 @@
+# Optional Phase 6 engines: server dictation (faster-whisper) and OCR (PP-OCR models on ONNX Runtime).
+# Without them the app still runs: dictation falls back to the browser, scanned uploads fail with a clear message.
+# RAM: whisper base.en int8 ~ +150-250 MB, OCR ~ +150 MB (lazy-loaded). Too much for Render's 512 MB free tier
+# together with the embedding model: install these only on a larger instance or a separate worker service.
+-r requirements.txt
+faster-whisper==1.2.1
+av==19.0.2
+rapidocr-onnxruntime==1.4.4
+opencv-python-headless==5.0.0.93
