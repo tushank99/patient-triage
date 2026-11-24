@@ -1,0 +1,58 @@
+Pager usage is off.
+=== Q1 retention: active visits for one patient (ops/retention.py) ===
+ count 
+-------
+     0
+(1 row)
+
+                                                                 QUERY PLAN                                                                 
+--------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=4.29..4.30 rows=1 width=8) (actual time=0.054..0.055 rows=1 loops=1)
+   Buffers: shared hit=2
+   ->  Index Only Scan using ix_visits_active_patient on visits  (cost=0.27..4.29 rows=1 width=0) (actual time=0.049..0.050 rows=0 loops=1)
+         Index Cond: (patient_id = 'pat-12345'::text)
+         Heap Fetches: 0
+         Buffers: shared hit=2
+ Planning Time: 0.361 ms
+ Execution Time: 0.126 ms
+(8 rows)
+
+=== Q2 waiting room for a facility (routers/queue.py) ===
+ count 
+-------
+   225
+(1 row)
+
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=0.69..1217.84 rows=180 width=405) (actual time=0.153..3.038 rows=225 loops=1)
+   Buffers: shared hit=714
+   ->  Index Scan using ix_visits_active_queue on visits  (cost=0.27..571.99 rows=180 width=405) (actual time=0.062..0.199 rows=225 loops=1)
+         Index Cond: ((facility_id)::text = 'ED-MAIN'::text)
+         Buffers: shared hit=38
+   ->  Index Only Scan using patients_pkey on patients  (cost=0.41..3.59 rows=1 width=9) (actual time=0.011..0.011 rows=1 loops=225)
+         Index Cond: (id = (visits.patient_id)::text)
+         Heap Fetches: 0
+         Buffers: shared hit=676
+ Planning:
+   Buffers: shared hit=103
+ Planning Time: 1.273 ms
+ Execution Time: 3.164 ms
+(13 rows)
+
+=== Q3 deterioration monitor tick (background_tasks.py) ===
+ count 
+-------
+   150
+(1 row)
+
+                                                              QUERY PLAN                                                               
+---------------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using ix_visits_active_queue on visits  (cost=0.27..758.34 rows=110 width=405) (actual time=0.037..0.289 rows=150 loops=1)
+   Filter: ((status)::text = 'WAITING'::text)
+   Rows Removed by Filter: 150
+   Buffers: shared hit=67
+ Planning Time: 0.222 ms
+ Execution Time: 0.345 ms
+(6 rows)
+

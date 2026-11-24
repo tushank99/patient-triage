@@ -134,6 +134,7 @@ def test_protected_environments_refuse_weak_secrets(monkeypatch):
     with pytest.raises(RuntimeError, match="JWT_SECRET"):
         config.ensure_secrets()
     monkeypatch.setattr(config.settings, "jwt_secret", "x" * 40)
+    monkeypatch.setattr("backend.app.ops.security.production_checks", lambda: [])  # storage checks are tested elsewhere
     config.ensure_secrets()
 
 

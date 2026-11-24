@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text
+from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, LargeBinary, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
@@ -181,8 +181,18 @@ class IngestionJob(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+_ACTIVE_VISIT = text("status IN ('WAITING', 'NEEDS_REASSESSMENT')")  # partial-index predicate == ACTIVE_STATUSES
+
+
 class Visit(Base):
     __tablename__ = "visits"
+    # Partial indexes over the live slice only (migration 0004, docs/sql-tuning.md): the queue, the
+    # deterioration monitor and the retention job never ask about historical visits.
+    __table_args__ = (
+        Index("ix_visits_active_queue", "facility_id", "final_esi_score", "arrival_time",
+              postgresql_where=_ACTIVE_VISIT, sqlite_where=_ACTIVE_VISIT),
+        Index("ix_visits_active_patient", "patient_id", postgresql_where=_ACTIVE_VISIT, sqlite_where=_ACTIVE_VISIT),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     patient_id: Mapped[str] = mapped_column(String, ForeignKey("patients.id"), nullable=False)

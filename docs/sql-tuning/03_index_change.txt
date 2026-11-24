@@ -1,0 +1,27 @@
+Timing is on.
+CREATE INDEX
+Time: 1396.634 ms (00:01.397)
+             idx             | size  
+-----------------------------+-------
+ full composite (comparison) | 14 MB
+(1 row)
+
+Time: 2.379 ms
+DROP INDEX
+Time: 18.421 ms
+CREATE INDEX
+Time: 143.881 ms
+CREATE INDEX
+Time: 186.431 ms
+ANALYZE
+Time: 840.440 ms
+           idx            |  size   
+--------------------------+---------
+ ix_visits_active_patient | 32 kB
+ ix_visits_active_queue   | 32 kB
+ ix_visits_facility_id    | 1904 kB
+ ix_visits_request_id     | 1896 kB
+ visits_pkey              | 15 MB
+(5 rows)
+
+Time: 4.334 ms
