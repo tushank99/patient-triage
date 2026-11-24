@@ -13,6 +13,8 @@ pymupdf==2.1  # AGPL-3.0: see docs/INGESTION.md
 python-docx==1.2.0
 fastembed==0.9.1  # embeddings (pinned model hashes in backend/app/retrieval/models.lock.json)
 openai==3.6.0
+prometheus-client==0.26.0
+cryptography==50.0.2  # encryption at rest (ENCRYPTION_KEY)
 joblib==1.5.3
 numpy==2.5.2
 scikit-learn==1.9.0
