@@ -25,6 +25,47 @@ PROMPT_NAME = "triage_assessment.v4"
 PROMPT_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 
 _sleep: Callable[[float], None] = time.sleep  # patched in tests
+_now: Callable[[], float] = time.monotonic  # patched in tests
+
+
+# ---- circuit breaker (docs/runbook.md, "LLM provider outage"). Without it, every triage during an outage paid
+# the full retry budget again (measured: 143 ms -> 5,008 ms per request). After N consecutive failed calls a
+# provider is skipped for a cooldown; the deterministic rules + ML result is returned at once, marked degraded.
+# After the cooldown one call is let through (half-open): success closes the circuit, failure re-opens it.
+@dataclass
+class _Circuit:
+    failures: int = 0
+    open_until: float = 0.0
+
+
+_CIRCUITS: dict = {}
+
+
+def _circuit_key(provider: LLMProvider) -> str:
+    return f"{provider.name}:{provider.model}"
+
+
+def _circuit_open(provider: LLMProvider) -> bool:
+    c = _CIRCUITS.get(_circuit_key(provider))
+    return bool(c and settings.llm_circuit_failure_threshold > 0 and _now() < c.open_until)
+
+
+def _circuit_result(provider: LLMProvider, ok: bool) -> None:
+    key = _circuit_key(provider)
+    c = _CIRCUITS.setdefault(key, _Circuit())
+    if ok:
+        c.failures, c.open_until = 0, 0.0
+        return
+    c.failures += 1
+    threshold = settings.llm_circuit_failure_threshold
+    if threshold > 0 and c.failures >= threshold:
+        c.open_until = _now() + settings.llm_circuit_cooldown_seconds
+        logger.error("LLM circuit OPEN for %s after %d consecutive failures; skipping it for %.0fs.",
+                     key, c.failures, settings.llm_circuit_cooldown_seconds)
+
+
+def reset_circuits() -> None:
+    _CIRCUITS.clear()
 
 
 class LLMClaim(BaseModel):
@@ -171,7 +212,8 @@ def metrics_summary() -> dict:
     for c in calls:
         if not c["ok"]:
             reasons[c["reason"]] = reasons.get(c["reason"], 0) + 1
-    return {"window_calls": len(calls), "prompt_version": PROMPT_NAME, "by_model": out, "failure_reasons": reasons}
+    circuits = {k: {"open": _now() < c.open_until, "consecutive_failures": c.failures} for k, c in _CIRCUITS.items()}
+    return {"window_calls": len(calls), "prompt_version": PROMPT_NAME, "by_model": out, "failure_reasons": reasons, "circuits": circuits}
 
 
 def _parse(text: str) -> LLMAssessment:
@@ -194,12 +236,17 @@ def assess_with_llm(inp: LLMInput, chain: Optional[List[LLMProvider]] = None) ->
     attempts = 0
 
     for idx, provider in enumerate(chain):
+        if _circuit_open(provider):
+            log.append(f"{provider.name}:circuit_open")
+            continue
         prompt = user
+        provider_error = False
         for attempt in range(1, settings.llm_max_attempts + 1):
             attempts += 1
             try:
                 resp = provider.complete_json(system, prompt, settings.llm_timeout_seconds)
                 assessment = _parse(resp.text)
+                _circuit_result(provider, ok=True)
                 cost = _record(provider.name, provider.model, True, "", resp.latency_ms, attempts, resp.prompt_tokens, resp.completion_tokens)
                 return LLMOutcome(assessment, LLMCallMeta(cost_usd=cost, 
                     provider=provider.name, model=provider.model, prompt_version=PROMPT_NAME, attempts=attempts,
@@ -207,6 +254,7 @@ def assess_with_llm(inp: LLMInput, chain: Optional[List[LLMProvider]] = None) ->
                     used_fallback=idx > 0, request_sha256=request_sha, request_text=request_text,
                 ))
             except ProviderError as e:
+                provider_error = True
                 log.append(f"{provider.name}:{e}")
                 if not e.transient:
                     break  # permanent (auth, bad request): try the next provider
@@ -217,6 +265,11 @@ def assess_with_llm(inp: LLMInput, chain: Optional[List[LLMProvider]] = None) ->
                 # One repair attempt: tell the model what was wrong. Never echo the model's own text back.
                 prompt = user + "\n\nYour previous reply was not valid JSON matching the required schema. Reply with ONLY the JSON object."
                 logger.warning("LLM invalid output (%s)", type(e).__name__)
+        if provider_error:  # unreachable/erroring provider; bad JSON from a reachable one does not trip the breaker
+            _circuit_result(provider, ok=False)
+    if all(entry.endswith(":circuit_open") for entry in log):  # every provider skipped: nothing was called
+        logger.warning("LLM skipped: circuit open for every provider %s", log)
+        raise LLMUnavailable("llm_unavailable", log)
     _record(chain[-1].name, chain[-1].model, False, log[-1] if log else "unknown", 0, attempts, None, None)
     logger.warning("LLM unavailable after %d attempt(s): %s", attempts, log)
     raise LLMUnavailable("llm_unavailable", log)

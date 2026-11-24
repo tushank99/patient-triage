@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, contains_eager
 
 from backend.app.auth import PERMISSIONS, authorize_visit, get_current_user, log_access, require
 from backend.app.database import get_db
@@ -22,7 +22,7 @@ def _may_see_names(user: User) -> bool:
 def get_waiting_room(user: User = Depends(require("queue:read")), db: Session = Depends(get_db)):
     """Live waiting room for the user's facility, most acute first, then longest waiting."""
     visits = (
-        db.query(Visit).join(Patient)
+        db.query(Visit).join(Patient).options(contains_eager(Visit.patient))  # fill v.patient from this JOIN: no per-row lazy load
         .filter(Visit.status.in_(ACTIVE_STATUSES), Visit.facility_id == user.facility_id)
         .order_by(Visit.final_esi_score.asc(), Visit.arrival_time.asc()).all()
     )
@@ -62,7 +62,7 @@ def get_archived_records(user: User = Depends(require("archive:read")), db: Sess
     """Historical archive, limited to the last 7 days. Roles without patient-level access see no names."""
     since = datetime.now(timezone.utc) - timedelta(days=7)
     visits = (
-        db.query(Visit).join(Patient)
+        db.query(Visit).join(Patient).options(contains_eager(Visit.patient))
         .filter(Visit.status.notin_(ACTIVE_STATUSES + NON_ARCHIVE_STATUSES), Visit.discharge_time >= since, Visit.facility_id == user.facility_id)
         .order_by(Visit.discharge_time.desc()).all()
     )

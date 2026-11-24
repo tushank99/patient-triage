@@ -1,0 +1,8 @@
+query                      total ms   mean ms
+waiting_room                 7549.2     25.16
+count_documents              3843.5     12.81
+document_list                3323.7     11.08
+active_visit_check           3242.2     10.81
+history_rows                 3057.4     10.19
+duplicate_check              2927.6      9.76
+deterioration_monitor        1804.0     18.04

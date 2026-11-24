@@ -1,0 +1,11 @@
+ calls | total_ms | mean_ms | blocks  |                                                     query                                                      
+-------+----------+---------+---------+----------------------------------------------------------------------------------------------------------------
+   300 |  26818.4 |   89.39 | 1932300 | SELECT count(*) AS count_1 FROM (SELECT visits.id AS visits_id, visits.patient_id AS visits_patient_id, visits
+   300 |  26019.1 |   86.73 | 2096092 | SELECT visits.id AS visits_id, visits.patient_id AS visits_patient_id, visits.facility_id AS visits_facility_i
+   100 |   7682.7 |   76.83 |  638300 | SELECT visits.id AS visits_id, visits.patient_id AS visits_patient_id, visits.facility_id AS visits_facility_i
+   300 |    184.5 |    0.61 |    7039 | SELECT count(*) AS count_1 FROM (SELECT clinical_documents.id AS clinical_documents_id, clinical_documents.pat
+   300 |    136.0 |    0.45 |    7045 | SELECT clinical_documents.id AS clinical_documents_id, clinical_documents.patient_id AS clinical_documents_pat
+   300 |    110.3 |    0.37 |    7039 | SELECT clinical_documents.id AS clinical_documents_id, clinical_documents.patient_id AS clinical_documents_pat
+   300 |     35.4 |    0.12 |    7039 | SELECT clinical_documents.id AS clinical_documents_id, clinical_documents.patient_id AS clinical_documents_pat
+(7 rows)
+

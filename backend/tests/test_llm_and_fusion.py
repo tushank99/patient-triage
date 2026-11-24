@@ -140,3 +140,57 @@ def test_fusion_trace_and_flags():
     assert d.escalated_by_rules and d.llm_downgrade_blocked and [s.stage for s in d.trace] == ["base", "rule_floor"]
     assert fuse(None, 1, 0.9, 3).disagreement and not fuse(None, 3, 0.9, 4).disagreement
     assert fuse(None, 2, 0.9, 4).model_escalated
+
+
+# ---- circuit breaker (docs/runbook.md, "LLM provider outage")
+
+DOWN = ProviderError("APIConnectionError", True)
+
+
+def _fail_once(p):
+    with pytest.raises(LLMUnavailable):
+        assess_with_llm(INP, [p])
+
+
+def test_circuit_opens_after_consecutive_failures_and_skips_the_dead_provider(monkeypatch):
+    clock = [1000.0]
+    monkeypatch.setattr(assessor, "_now", lambda: clock[0])
+    dead = Scripted([DOWN] * 6, name="dead")
+    for _ in range(3):  # threshold = 3 failed calls, 2 attempts each
+        _fail_once(dead)
+    assert len(dead.calls) == 6 and assessor.metrics_summary()["circuits"]["dead:m"] == {"open": True, "consecutive_failures": 3}
+
+    with pytest.raises(LLMUnavailable) as e:  # open: fails fast without touching the provider
+        assess_with_llm(INP, [dead])
+    assert len(dead.calls) == 6 and e.value.attempts == ["dead:circuit_open"]
+
+
+def test_open_primary_goes_straight_to_the_fallback(monkeypatch):
+    monkeypatch.setattr(assessor, "_now", lambda: 1000.0)
+    dead = Scripted([DOWN] * 6, name="dead")
+    for _ in range(3):
+        _fail_once(dead)
+    backup = Scripted([GOOD], name="backup")
+    out = assess_with_llm(INP, [dead, backup])
+    assert out.meta.provider == "backup" and out.meta.used_fallback and out.meta.attempts == 1 and len(dead.calls) == 6
+
+
+def test_half_open_after_cooldown_success_closes_failure_reopens(monkeypatch):
+    clock = [1000.0]
+    monkeypatch.setattr(assessor, "_now", lambda: clock[0])
+    p = Scripted([DOWN] * 6 + [GOOD] + [DOWN] * 2, name="flaky")
+    for _ in range(3):
+        _fail_once(p)
+    clock[0] += 31  # past the 30 s cooldown: one trial call is let through
+    assert assess_with_llm(INP, [p]).meta.provider == "flaky"
+    assert assessor.metrics_summary()["circuits"]["flaky:m"] == {"open": False, "consecutive_failures": 0}
+    _fail_once(p)  # a single failure after recovery does not re-open it
+    assert assessor.metrics_summary()["circuits"]["flaky:m"]["open"] is False
+
+
+def test_bad_json_from_a_reachable_provider_does_not_trip_the_breaker(monkeypatch):
+    monkeypatch.setattr(assessor, "_now", lambda: 1000.0)
+    p = Scripted(["not json"] * 8, name="chatty")
+    for _ in range(4):
+        _fail_once(p)
+    assert "chatty:m" not in assessor.metrics_summary()["circuits"]

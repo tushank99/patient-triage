@@ -4,6 +4,7 @@ Environment variables must be set before any backend module is imported.
 """
 import json
 import os
+from datetime import date
 import tempfile
 import uuid
 from pathlib import Path
@@ -42,7 +43,8 @@ _header_cache: dict = {}
 def seeded():
     from backend.scripts.seed_data import seed
 
-    return seed(reset=True, users=True)
+    # Pinned date: patient ages are derived from DOB, and the infant golden case (R-PED-FEVER, age <= 0.25) would age out of the rule otherwise.
+    return seed(reset=True, users=True, today=date(2026, 10, 31))
 
 
 @pytest.fixture(scope="session")
@@ -65,9 +67,11 @@ def auth(client: TestClient, username: str = "lee") -> dict:
 @pytest.fixture(autouse=True)
 def _clear_overrides():
     yield
+    from backend.app.llm.assessor import reset_circuits
     from backend.app.main import app
 
     app.dependency_overrides.clear()
+    reset_circuits()  # breaker state is process-wide; one test's failures must not skip providers in the next
 
 
 @pytest.fixture(scope="session")

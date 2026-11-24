@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 10.0
     llm_max_attempts: int = 2  # per provider, for transient errors and one JSON-repair retry
     llm_backoff_seconds: float = 0.5
+    llm_circuit_failure_threshold: int = 3  # consecutive failed calls before a provider is skipped; 0 disables
+    llm_circuit_cooldown_seconds: float = 30.0  # how long it is skipped before one trial call (half-open)
     # PHI gate: in staging/production a hosted (non-local) provider is blocked unless this is true,
     # which you may only set after signing a BAA with that provider. See docs/PHI_POLICY.md.
     llm_hosted_baa_confirmed: bool = False
@@ -164,12 +166,14 @@ def ensure_secrets() -> None:
     """Called once at startup. Refuses to boot a protected environment with weak secrets or unsafe storage."""
     from backend.app.ops.security import production_checks
 
-    problems = production_checks()
+    problems = []
+    jwt_ok = bool(settings.jwt_secret) and len(settings.jwt_secret) >= 32
+    if settings.is_protected_env and not jwt_ok:
+        problems.append("JWT_SECRET must be set to at least 32 random characters in staging/production.")
+    problems += production_checks()
     if problems:
         raise RuntimeError("Refusing to start: " + " ".join(problems))
-    if settings.jwt_secret and len(settings.jwt_secret) >= 32:
+    if jwt_ok:
         return
-    if settings.is_protected_env:
-        raise RuntimeError("JWT_SECRET must be set to at least 32 random characters in staging/production.")
     settings.jwt_secret = secrets.token_urlsafe(48)
     logger.warning("JWT_SECRET not set: using a random per-process secret (all sessions end on restart).")

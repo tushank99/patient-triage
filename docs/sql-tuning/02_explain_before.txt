@@ -1,0 +1,77 @@
+Pager usage is off.
+=== Q1 retention: active visits for one patient (ops/retention.py) ===
+ count 
+-------
+     0
+(1 row)
+
+                                                              QUERY PLAN                                                              
+--------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=9258.10..9258.11 rows=1 width=8) (actual time=69.096..77.818 rows=1 loops=1)
+   Buffers: shared hit=6441
+   ->  Gather  (cost=1000.00..9258.10 rows=1 width=0) (actual time=69.090..77.809 rows=0 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=6441
+         ->  Parallel Seq Scan on visits  (cost=0.00..8258.00 rows=1 width=0) (actual time=59.990..59.991 rows=0 loops=3)
+               Filter: (((status)::text = ANY ('{WAITING,NEEDS_REASSESSMENT}'::text[])) AND ((patient_id)::text = 'pat-12345'::text))
+               Rows Removed by Filter: 100000
+               Buffers: shared hit=6441
+ Planning Time: 0.194 ms
+ Execution Time: 77.869 ms
+(12 rows)
+
+=== Q2 waiting room for a facility (routers/queue.py) ===
+ count 
+-------
+   225
+(1 row)
+
+                                                                   QUERY PLAN                                                                    
+-------------------------------------------------------------------------------------------------------------------------------------------------
+ Gather Merge  (cost=9615.04..9639.78 rows=212 width=405) (actual time=63.110..72.053 rows=225 loops=1)
+   Workers Planned: 2
+   Workers Launched: 2
+   Buffers: shared hit=7093
+   ->  Sort  (cost=8615.02..8615.28 rows=106 width=405) (actual time=55.186..55.196 rows=75 loops=3)
+         Sort Key: visits.final_esi_score, visits.arrival_time
+         Sort Method: quicksort  Memory: 41kB
+         Buffers: shared hit=7093
+         Worker 0:  Sort Method: quicksort  Memory: 36kB
+         Worker 1:  Sort Method: quicksort  Memory: 33kB
+         ->  Nested Loop  (cost=0.41..8611.45 rows=106 width=405) (actual time=53.626..54.859 rows=75 loops=3)
+               Buffers: shared hit=7063
+               ->  Parallel Seq Scan on visits  (cost=0.00..8258.00 rows=106 width=405) (actual time=53.476..53.589 rows=75 loops=3)
+                     Filter: (((status)::text = ANY ('{WAITING,NEEDS_REASSESSMENT}'::text[])) AND ((facility_id)::text = 'ED-MAIN'::text))
+                     Rows Removed by Filter: 99925
+                     Buffers: shared hit=6383
+               ->  Index Only Scan using patients_pkey on patients  (cost=0.41..3.33 rows=1 width=9) (actual time=0.016..0.016 rows=1 loops=225)
+                     Index Cond: (id = (visits.patient_id)::text)
+                     Heap Fetches: 0
+                     Buffers: shared hit=680
+ Planning:
+   Buffers: shared hit=83
+ Planning Time: 0.522 ms
+ Execution Time: 72.184 ms
+(24 rows)
+
+=== Q3 deterioration monitor tick (background_tasks.py) ===
+ count 
+-------
+   150
+(1 row)
+
+                                                       QUERY PLAN                                                       
+------------------------------------------------------------------------------------------------------------------------
+ Gather  (cost=1000.00..8962.50 rows=170 width=405) (actual time=53.934..63.718 rows=150 loops=1)
+   Workers Planned: 2
+   Workers Launched: 2
+   Buffers: shared hit=6383
+   ->  Parallel Seq Scan on visits  (cost=0.00..7945.50 rows=71 width=405) (actual time=44.744..44.781 rows=50 loops=3)
+         Filter: ((status)::text = 'WAITING'::text)
+         Rows Removed by Filter: 99950
+         Buffers: shared hit=6383
+ Planning Time: 0.141 ms
+ Execution Time: 63.775 ms
+(10 rows)
+
